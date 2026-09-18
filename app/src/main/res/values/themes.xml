@@ -1,0 +1,31 @@
+<resources>
+    <style name="Base.Theme.CarCareFormularioRegistro" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/carcare_primary</item>
+        <item name="colorPrimaryContainer">@color/carcare_primary_container</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSurface">@color/carcare_surface</item>
+        <item name="colorOnSurface">@color/carcare_text_primary</item>
+        <item name="colorOutline">@color/carcare_outline</item>
+        <item name="android:colorAccent">@color/carcare_primary</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:navigationBarColor">@color/carcare_background</item>
+        <item name="android:statusBarColor">@color/carcare_background</item>
+        <item name="android:windowBackground">@color/carcare_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="Theme.CarCareFormularioRegistro" parent="Base.Theme.CarCareFormularioRegistro" />
+
+    <style name="Widget.CarCare.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/carcare_surface</item>
+        <item name="boxStrokeColor">@color/carcare_input_stroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1dp</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="hintEnabled">false</item>
+        <item name="errorTextColor">@color/carcare_error</item>
+    </style>
+</resources>

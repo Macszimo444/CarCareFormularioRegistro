@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">CarCare</string>
+    <string name="brand_name">CarCare</string>
+    <string name="registro_titulo">Crea tu cuenta</string>
+    <string name="registro_subtitulo">Registra tus datos para comenzar a cuidar tu vehículo.</string>
+    <string name="datos_personales">DATOS PERSONALES</string>
+    <string name="nombre_label">NOMBRE</string>
+    <string name="nombre_hint">Escribe tu nombre</string>
+    <string name="apellidos_label">APELLIDOS</string>
+    <string name="apellidos_hint">Escribe tus apellidos</string>
+    <string name="direccion_label">DIRECCIÓN</string>
+    <string name="direccion_hint">Calle, número, colonia y ciudad</string>
+    <string name="telefono_label">TELÉFONO</string>
+    <string name="telefono_hint">Número de contacto</string>
+    <string name="privacidad_mensaje">Tus datos se guardan de forma segura en este dispositivo.</string>
+    <string name="guardar_registro">Crear cuenta</string>
+    <string name="guardando_usuario">Guardando…</string>
+    <string name="campo_obligatorio">Este campo es obligatorio</string>
+    <string name="usuario_guardado">Tu registro se guardó correctamente</string>
+    <string name="error_guardar_usuario">No se pudo guardar el registro. Inténtalo de nuevo.</string>
+    <string name="carcare_logo_descripcion">Logotipo de CarCare</string>
+</resources>

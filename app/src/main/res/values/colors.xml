@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFFFF</color>
+    <color name="carcare_background">#090B0D</color>
+    <color name="carcare_surface">#1B1E23</color>
+    <color name="carcare_surface_alt">#13161A</color>
+    <color name="carcare_outline">#30353D</color>
+    <color name="carcare_primary">#168BFF</color>
+    <color name="carcare_primary_dark">#0D6ED1</color>
+    <color name="carcare_primary_container">#112B47</color>
+    <color name="carcare_text_primary">#F6F7F9</color>
+    <color name="carcare_text_secondary">#A5ABB5</color>
+    <color name="carcare_text_muted">#7E8590</color>
+    <color name="carcare_error">#FF6B6B</color>
+</resources>
