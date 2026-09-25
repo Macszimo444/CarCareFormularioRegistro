@@ -11,5 +11,5 @@ data class User(
     val apellidos: String,
     val direccion: String = "",
     val telefono: String = "",
-    val email: String = "usuario@carcare.app"
+    val email: String = ""
 )

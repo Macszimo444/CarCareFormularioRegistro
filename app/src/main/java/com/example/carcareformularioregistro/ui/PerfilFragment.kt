@@ -8,9 +8,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.carcareformularioregistro.R
+import com.example.carcareformularioregistro.RegistroActivity
+import com.example.carcareformularioregistro.utils.LocalSession
 import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.databinding.FragmentPerfilBinding
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -66,9 +68,16 @@ class PerfilFragment : Fragment() {
             ).show()
         }
 
+        binding.cardProfileVehicle.setOnClickListener {
+            EditVehicleDialogFragment().show(parentFragmentManager, "EditVehicleDialog")
+        }
+
         binding.btnLogout.setOnClickListener {
-            Snackbar.make(binding.root, "Has cerrado sesión correctamente", Snackbar.LENGTH_LONG)
-                .show()
+            LocalSession.close(requireContext())
+            startActivity(Intent(requireContext(), RegistroActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+            requireActivity().finish()
         }
     }
 
@@ -77,7 +86,9 @@ class PerfilFragment : Fragment() {
             db.userDao().getPrimaryUserFlow().collectLatest { user ->
                 user?.let {
                     binding.tvUserName.text = "${it.nombre} ${it.apellidos}"
-                    binding.tvUserContact.text = "${it.email} • ${it.telefono}"
+                    binding.tvUserContact.text = listOf(it.email, it.telefono)
+                        .filter { value -> value.isNotBlank() }.joinToString(" • ")
+                        .ifBlank { getString(R.string.perfil_local_contacto) }
 
                     val initials = "${it.nombre.firstOrNull() ?: "U"}${it.apellidos.firstOrNull() ?: ""}"
                     binding.tvUserInitials.text = initials.uppercase()
@@ -87,10 +98,15 @@ class PerfilFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.vehicleDao().getPrimaryVehicleFlow().collectLatest { vehicle ->
-                vehicle?.let {
-                    binding.tvProfileVehicleName.text = it.name
+                if (vehicle != null) {
+                    binding.tvProfileVehicleName.text = vehicle.name
                     binding.tvProfileVehicleDetails.text =
-                        String.format("%,d km • Placas: %s", it.mileage, it.plates)
+                        String.format("%,d km • Placas: %s", vehicle.mileage, vehicle.plates)
+                    binding.btnEditVehicle.setText(R.string.editar_vehiculo)
+                } else {
+                    binding.tvProfileVehicleName.setText(R.string.sin_vehiculo_perfil)
+                    binding.tvProfileVehicleDetails.setText(R.string.sin_vehiculo_indicacion)
+                    binding.btnEditVehicle.setText(R.string.agregar_vehiculo_perfil)
                 }
             }
         }

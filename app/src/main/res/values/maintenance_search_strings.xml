@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="maintenance_search_hint">Buscar mantenimiento...</string>
+    <string name="maintenance_no_results">No encontramos mantenimientos</string>
+    <string name="maintenance_try_another_term">Intenta buscar con otro término.</string>
+    <string name="maintenance_try_another_tab">Prueba otra pestaña o agrega un mantenimiento.</string>
+    <string name="maintenance_add_first">Agrega tu primer servicio para llevar su seguimiento.</string>
+    <string name="maintenance_load_error">No pudimos cargar los mantenimientos</string>
+    <string name="maintenance_load_retry">Vuelve a abrir esta pantalla para intentarlo de nuevo.</string>
+    <string name="maintenance_delete_error">No se pudo eliminar el mantenimiento. Inténtalo de nuevo.</string>
+    <string name="maintenance_search_delete_title">Eliminar mantenimiento</string>
+    <string name="maintenance_search_delete_message">¿Deseas borrar “%1$s” del registro?</string>
+    <string name="maintenance_delete">Eliminar</string>
+    <string name="maintenance_cancel">Cancelar</string>
+    <string name="maintenance_delete_named">Eliminar %1$s</string>
+    <string name="maintenance_date_mileage">%1$s • %2$s km</string>
+    <string name="maintenance_no_workshop">Taller no especificado</string>
+    <plurals name="maintenance_monitored">
+        <item quantity="one">%d servicio monitoreado</item>
+        <item quantity="other">%d servicios monitoreados</item>
+    </plurals>
+</resources>

@@ -4,14 +4,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carcareformularioregistro.adapter.ExpenseAdapter
+import com.example.carcareformularioregistro.R
 import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.databinding.FragmentGastosBinding
+import com.example.carcareformularioregistro.utils.StatisticsCalculator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 class GastosFragment : Fragment() {
 
@@ -58,11 +63,20 @@ class GastosFragment : Fragment() {
             db.expenseDao().getAllExpensesFlow().collectLatest { expenses ->
                 adapter.updateData(expenses)
 
-                val monthlyTotal = expenses.sumOf { it.amount }
-                binding.tvMonthlyTotal.text = String.format("$%.2f", monthlyTotal)
-                binding.tvYearlyTotal.text = String.format("$%.2f", monthlyTotal * 1.2)
-                binding.tvMonthlyAverage.text = String.format("$%.2f", monthlyTotal)
-                binding.tvComparison.text = "-12% vs. mes anterior"
+                val stats = StatisticsCalculator.expenses(expenses)
+                val currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-MX"))
+                binding.tvMonthlyTotal.text = currency.format(stats.monthlyTotal)
+                binding.tvYearlyTotal.text = currency.format(stats.yearlyTotal)
+                binding.tvMonthlyAverage.text = currency.format(stats.monthlyAverage)
+                val comparison = stats.comparisonPercent
+                binding.tvComparison.text = if (comparison == null) {
+                    getString(R.string.stats_no_comparison)
+                } else getString(R.string.stats_month_comparison, comparison)
+                binding.tvComparison.setTextColor(ContextCompat.getColor(requireContext(), when {
+                    comparison == null || comparison == 0.0 -> R.color.carcare_text_secondary
+                    comparison > 0.0 -> R.color.carcare_danger
+                    else -> R.color.carcare_success
+                }))
 
                 if (expenses.isEmpty()) {
                     binding.containerEmptyGastos.visibility = View.VISIBLE

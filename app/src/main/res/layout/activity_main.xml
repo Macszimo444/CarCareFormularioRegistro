@@ -32,8 +32,11 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="64dp"
+        android:layout_height="wrap_content"
+        android:minHeight="80dp"
+        android:elevation="0dp"
         android:background="@color/carcare_card"
+        app:itemHorizontalTranslationEnabled="false"
         app:itemIconSize="22dp"
         app:itemIconTint="@color/carcare_electric_blue"
         app:itemRippleColor="@color/carcare_electric_blue_15"

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="maintenance_status_label">ESTADO</string>
+    <string name="maintenance_edit_title">Editar Mantenimiento</string>
+    <string name="form_required">Completa este campo</string>
+    <string name="form_invalid_date">Usa una fecha válida: AAAA-MM-DD o DD/MM/AAAA</string>
+    <string name="form_invalid_mileage">Ingresa un kilometraje entero válido, sin separadores</string>
+    <string name="form_invalid_cost">Ingresa un importe válido con hasta 2 decimales</string>
+    <string name="form_invalid_positive_amount">Ingresa un importe mayor que cero</string>
+    <string name="form_invalid_option">Selecciona una opción de la lista</string>
+    <string name="form_invalid_year">Ingresa un año válido entre 1886 y %1$d</string>
+    <string name="form_vehicle_required">Registra tu vehículo y vuelve a guardar este formulario.</string>
+    <string name="form_save_error">No se pudo guardar. Tus datos siguen en el formulario; inténtalo de nuevo.</string>
+    <string name="form_load_error">No se pudieron cargar los datos. Inténtalo de nuevo.</string>
+    <string name="form_delete_error">No se pudo eliminar. Inténtalo de nuevo.</string>
+    <string name="maintenance_not_found">Este mantenimiento ya no existe.</string>
+    <string name="maintenance_saved">Mantenimiento guardado correctamente</string>
+    <string name="maintenance_deleted">Mantenimiento eliminado</string>
+    <string name="maintenance_delete_title">Eliminar Mantenimiento</string>
+    <string name="maintenance_delete_message">¿Estás seguro de que deseas eliminar este registro de mantenimiento?</string>
+    <string name="maintenance_delete_confirm">Eliminar</string>
+    <string name="maintenance_next_date_help">Opcional; si se deja vacío se conserva la fecha del servicio.</string>
+    <string name="maintenance_next_mileage_help">Opcional; si se deja vacío se conserva el kilometraje del servicio.</string>
+    <string name="expense_saved">Gasto registrado con éxito</string>
+    <string name="reminder_saved">Recordatorio creado correctamente</string>
+    <string name="reminder_alarm_error">El recordatorio se guardó, pero no se pudo programar el aviso. Actívalo nuevamente para reintentar.</string>
+    <string name="vehicle_saved">Vehículo guardado correctamente</string>
+</resources>

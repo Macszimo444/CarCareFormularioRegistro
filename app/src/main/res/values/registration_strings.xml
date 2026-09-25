@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="registro_local_subtitulo">Registra tus datos para comenzar a cuidar tu vehículo. Tu perfil se guarda en este dispositivo; no requiere contraseña.</string>
+    <string name="continuar_perfil_local">Continuar con mi perfil local</string>
+    <string name="actualizar_perfil_continuar">Guardar cambios y continuar</string>
+    <string name="reintentar_cargar_perfil">Reintentar cargar perfil</string>
+    <string name="error_cargar_perfil">No se pudo cargar tu perfil. Inténtalo de nuevo.</string>
+    <string name="agregar_vehiculo_perfil">Agregar vehículo</string>
+    <string name="sin_vehiculo_perfil">Aún no has registrado un vehículo</string>
+    <string name="sin_vehiculo_indicacion">Toca aquí para registrar tu auto.</string>
+    <string name="perfil_local_contacto">Perfil local en este dispositivo</string>
+</resources>

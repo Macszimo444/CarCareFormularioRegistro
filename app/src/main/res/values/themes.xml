@@ -3,6 +3,10 @@
     <style name="Base.Theme.CarCareFormularioRegistro" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/carcare_electric_blue</item>
         <item name="colorPrimaryContainer">@color/carcare_soft_blue</item>
+        <item name="colorSecondary">@color/carcare_electric_blue</item>
+        <item name="colorSecondaryContainer">@color/carcare_soft_blue</item>
+        <item name="colorOnSecondaryContainer">@color/carcare_electric_blue</item>
+        <item name="colorSurfaceContainer">@color/carcare_card</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSurface">@color/carcare_card</item>
         <item name="colorOnSurface">@color/carcare_text_primary</item>

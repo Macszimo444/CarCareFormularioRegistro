@@ -9,10 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.carcareformularioregistro.MainActivity
 import com.example.carcareformularioregistro.R
+import com.example.carcareformularioregistro.data.Reminder
+import java.time.LocalDate
+import java.time.ZoneId
 
 object NotificationHelper {
 
@@ -70,7 +74,32 @@ object NotificationHelper {
         notificationManager.notify(id, builder.build())
     }
 
-    fun scheduleReminderAlarm(context: Context, reminderId: Int, title: String, triggerAtMillis: Long) {
+    /** Alarms are inexact, so Android can deliver them later when the device is idle. */
+    fun scheduleReminder(context: Context, reminder: Reminder): Boolean {
+        if (!reminder.enabled) {
+            cancelReminderAlarm(context, reminder.id)
+            return true
+        }
+        val date = FormValidation.date(reminder.dueDate) ?: return false
+        val dueAt = LocalDate.parse(date).atTime(9, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        // A reminder entered/re-enabled after its due time is scheduled for the next minute.
+        val triggerAt = maxOf(dueAt, System.currentTimeMillis() + 60_000)
+        return scheduleReminderAlarm(context, reminder.id, reminder.title, triggerAt)
+    }
+
+    fun cancelReminderAlarm(context: Context, reminderId: Int) {
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, reminderId, Intent(context, ReminderReceiver::class.java),
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        pendingIntent?.let {
+            (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(it)
+            it.cancel()
+        }
+        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(reminderId)
+    }
+
+    fun scheduleReminderAlarm(context: Context, reminderId: Int, title: String, triggerAtMillis: Long): Boolean {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra("reminder_id", reminderId)
@@ -83,14 +112,16 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        try {
+        return try {
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
                 pendingIntent
             )
+            true
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("CarCareReminders", "Could not schedule reminder", e)
+            false
         }
     }
 }

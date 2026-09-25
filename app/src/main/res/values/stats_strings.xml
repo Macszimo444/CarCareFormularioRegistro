@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="stats_no_comparison">Sin comparación</string>
+    <string name="stats_month_comparison">%1$+.1f%% vs. mes anterior</string>
+    <plurals name="stats_history_services">
+        <item quantity="one">%d servicio</item>
+        <item quantity="other">%d servicios</item>
+    </plurals>
+</resources>

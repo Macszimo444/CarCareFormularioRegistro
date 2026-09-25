@@ -20,6 +20,9 @@ interface ReminderDao {
     @Query("SELECT * FROM reminders ORDER BY dueDate ASC")
     fun getAllRemindersFlow(): Flow<List<Reminder>>
 
+    @Query("SELECT * FROM reminders WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Int): Reminder?
+
     @Query("SELECT * FROM reminders WHERE enabled = 1 ORDER BY dueDate ASC")
     suspend fun getActiveReminders(): List<Reminder>
 

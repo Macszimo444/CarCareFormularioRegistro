@@ -9,14 +9,18 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.databinding.FragmentInicioBinding
+import com.example.carcareformularioregistro.utils.StatisticsCalculator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 class InicioFragment : Fragment() {
 
     private var _binding: FragmentInicioBinding? = null
     private val binding get() = _binding!!
 
+    private var nextMaintenanceId: Int? = null
     private val db by lazy { AppDatabase.getInstance(requireContext().applicationContext) }
 
     override fun onCreateView(
@@ -61,7 +65,11 @@ class InicioFragment : Fragment() {
         }
 
         binding.btnViewServiceDetails.setOnClickListener {
-            startActivity(Intent(requireContext(), AddMaintenanceActivity::class.java))
+            nextMaintenanceId?.let { id ->
+                startActivity(Intent(requireContext(), AddMaintenanceActivity::class.java).apply {
+                    putExtra("maintenance_id", id)
+                })
+            }
         }
     }
 
@@ -81,6 +89,8 @@ class InicioFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.maintenanceDao().getNextMaintenanceFlow().collectLatest { nextService ->
+                nextMaintenanceId = nextService?.id
+                binding.btnViewServiceDetails.isEnabled = nextService != null
                 if (nextService != null) {
                     binding.tvNextServiceTitle.text = nextService.type
                     binding.tvNextServiceDate.text = "Fecha recomendada: ${nextService.nextDate}"
@@ -122,9 +132,10 @@ class InicioFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            db.expenseDao().getTotalExpensesFlow().collectLatest { total ->
-                val totalVal = total ?: 0.0
-                binding.tvStatMonthlySpent.text = String.format("$%.2f", totalVal)
+            db.expenseDao().getAllExpensesFlow().collectLatest { expenses ->
+                val monthlyTotal = StatisticsCalculator.expenses(expenses).monthlyTotal
+                binding.tvStatMonthlySpent.text = NumberFormat
+                    .getCurrencyInstance(Locale.forLanguageTag("es-MX")).format(monthlyTotal)
             }
         }
     }
