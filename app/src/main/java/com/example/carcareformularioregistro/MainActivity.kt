@@ -1,154 +1,92 @@
 package com.example.carcareformularioregistro
 
-import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.example.carcareformularioregistro.data.AppDatabase
-import com.example.carcareformularioregistro.data.User
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import androidx.fragment.app.Fragment
+import com.example.carcareformularioregistro.databinding.ActivityMainBinding
+import com.example.carcareformularioregistro.ui.GastosFragment
+import com.example.carcareformularioregistro.ui.InicioFragment
+import com.example.carcareformularioregistro.ui.MantenimientoFragment
+import com.example.carcareformularioregistro.ui.PerfilFragment
+import com.example.carcareformularioregistro.utils.NotificationHelper
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var nombreLayout: TextInputLayout
-    private lateinit var apellidosLayout: TextInputLayout
-    private lateinit var direccionLayout: TextInputLayout
-    private lateinit var telefonoLayout: TextInputLayout
 
-    private lateinit var nombreInput: TextInputEditText
-    private lateinit var apellidosInput: TextInputEditText
-    private lateinit var direccionInput: TextInputEditText
-    private lateinit var telefonoInput: TextInputEditText
-    private lateinit var guardarButton: MaterialButton
-
-    private val database by lazy { AppDatabase.getInstance(applicationContext) }
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
             insets
         }
 
-        bindViews()
-        guardarButton.setOnClickListener { guardarUsuario() }
+        NotificationHelper.createNotificationChannel(this)
+        requestNotificationPermission()
+
+        setupBottomNavigation()
+
+        if (savedInstanceState == null) {
+            replaceFragment(InicioFragment())
+        }
     }
 
-    private fun bindViews() {
-        nombreLayout = findViewById(R.id.tilNombre)
-        apellidosLayout = findViewById(R.id.tilApellidos)
-        direccionLayout = findViewById(R.id.tilDireccion)
-        telefonoLayout = findViewById(R.id.tilTelefono)
-
-        nombreInput = findViewById(R.id.etNombre)
-        apellidosInput = findViewById(R.id.etApellidos)
-        direccionInput = findViewById(R.id.etDireccion)
-        telefonoInput = findViewById(R.id.etTelefono)
-        guardarButton = findViewById(R.id.btnGuardar)
-    }
-
-    private fun guardarUsuario() {
-        val nombre = nombreInput.text?.toString()?.trim().orEmpty()
-        val apellidos = apellidosInput.text?.toString()?.trim().orEmpty()
-        val direccion = direccionInput.text?.toString()?.trim().orEmpty()
-        val telefono = telefonoInput.text?.toString()?.trim().orEmpty()
-
-        if (!validarCampos(nombre, apellidos, direccion, telefono)) return
-
-        ocultarTeclado()
-        mostrarEstadoGuardando(true)
-
-        val usuario = User(
-            nombre = nombre,
-            apellidos = apellidos,
-            direccion = direccion,
-            telefono = telefono,
-        )
-
-        lifecycleScope.launch {
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    database.userDao().insertar(usuario)
+    private fun setupBottomNavigation() {
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_inicio -> {
+                    replaceFragment(InicioFragment())
+                    true
                 }
-            }.onSuccess {
-                limpiarFormulario()
-                Snackbar.make(
-                    findViewById(R.id.main),
-                    R.string.usuario_guardado,
-                    Snackbar.LENGTH_LONG,
-                ).show()
-            }.onFailure {
-                Snackbar.make(
-                    findViewById(R.id.main),
-                    R.string.error_guardar_usuario,
-                    Snackbar.LENGTH_LONG,
-                ).show()
+                R.id.nav_mantenimiento -> {
+                    replaceFragment(MantenimientoFragment())
+                    true
+                }
+                R.id.nav_gastos -> {
+                    replaceFragment(GastosFragment())
+                    true
+                }
+                R.id.nav_perfil -> {
+                    replaceFragment(PerfilFragment())
+                    true
+                }
+                else -> false
             }
-
-            mostrarEstadoGuardando(false)
         }
     }
 
-    private fun validarCampos(
-        nombre: String,
-        apellidos: String,
-        direccion: String,
-        telefono: String,
-    ): Boolean {
-        val campos = listOf(
-            nombreLayout to nombre,
-            apellidosLayout to apellidos,
-            direccionLayout to direccion,
-            telefonoLayout to telefono,
-        )
+    private fun replaceFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
+    }
 
-        campos.forEach { (layout, _) -> layout.error = null }
-        val camposVacios = campos.filter { (_, valor) -> valor.isBlank() }
-
-        if (camposVacios.isNotEmpty()) {
-            camposVacios.forEach { (layout, _) ->
-                layout.error = getString(R.string.campo_obligatorio)
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    101
+                )
             }
-            camposVacios.first().first.editText?.requestFocus()
-            return false
-        }
-
-        return true
-    }
-
-    private fun mostrarEstadoGuardando(guardando: Boolean) {
-        guardarButton.isEnabled = !guardando
-        guardarButton.setText(
-            if (guardando) R.string.guardando_usuario else R.string.guardar_registro,
-        )
-    }
-
-    private fun limpiarFormulario() {
-        nombreInput.text?.clear()
-        apellidosInput.text?.clear()
-        direccionInput.text?.clear()
-        telefonoInput.text?.clear()
-        nombreInput.requestFocus()
-    }
-
-    private fun ocultarTeclado() {
-        currentFocus?.let { view ->
-            val keyboard = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            keyboard.hideSoftInputFromWindow(view.windowToken, 0)
-            view.clearFocus()
         }
     }
 }

@@ -1,15 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="white">#FFFFFFFF</color>
-    <color name="carcare_background">#090B0D</color>
-    <color name="carcare_surface">#1B1E23</color>
-    <color name="carcare_surface_alt">#13161A</color>
-    <color name="carcare_outline">#30353D</color>
-    <color name="carcare_primary">#168BFF</color>
-    <color name="carcare_primary_dark">#0D6ED1</color>
-    <color name="carcare_primary_container">#112B47</color>
-    <color name="carcare_text_primary">#F6F7F9</color>
-    <color name="carcare_text_secondary">#A5ABB5</color>
-    <color name="carcare_text_muted">#7E8590</color>
-    <color name="carcare_error">#FF6B6B</color>
+    <color name="black">#FF000000</color>
+
+    <!-- Obligatory CarCare Dark Theme Color Palette -->
+    <color name="carcare_background">#0A0B0D</color>
+    <color name="carcare_card">#15171A</color>
+    <color name="carcare_field">#1E2126</color>
+    <color name="carcare_border">#2A2E35</color>
+    <color name="carcare_electric_blue">#0A84FF</color>
+    <color name="carcare_soft_blue">#12294A</color>
+    <color name="carcare_text_primary">#FFFFFF</color>
+    <color name="carcare_text_secondary">#8B929E</color>
+    <color name="carcare_success">#30D158</color>
+    <color name="carcare_warning">#FFD60A</color>
+    <color name="carcare_danger">#FF453A</color>
+
+    <!-- Aliases and Containers -->
+    <color name="carcare_surface">#15171A</color>
+    <color name="carcare_surface_alt">#1E2126</color>
+    <color name="carcare_outline">#2A2E35</color>
+    <color name="carcare_primary">#0A84FF</color>
+    <color name="carcare_primary_dark">#0066CC</color>
+    <color name="carcare_primary_container">#12294A</color>
+    <color name="carcare_text_muted">#8B929E</color>
+    <color name="carcare_error">#FF453A</color>
+
+    <!-- Translucent Overlay / Chip Tints -->
+    <color name="carcare_electric_blue_15">#260A84FF</color>
+    <color name="carcare_success_15">#2630D158</color>
+    <color name="carcare_warning_15">#26FFD60A</color>
+    <color name="carcare_danger_15">#26FF453A</color>
 </resources>

@@ -1,6 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CarCare</string>
+    <string name="app_slogan">Todo el cuidado de tu vehículo en un solo lugar.</string>
     <string name="brand_name">CarCare</string>
+
+    <!-- Legacy / User Registration strings -->
     <string name="registro_titulo">Crea tu cuenta</string>
     <string name="registro_subtitulo">Registra tus datos para comenzar a cuidar tu vehículo.</string>
     <string name="datos_personales">DATOS PERSONALES</string>
@@ -15,8 +19,133 @@
     <string name="privacidad_mensaje">Tus datos se guardan de forma segura en este dispositivo.</string>
     <string name="guardar_registro">Crear cuenta</string>
     <string name="guardando_usuario">Guardando…</string>
-    <string name="campo_obligatorio">Este campo es obligatorio</string>
     <string name="usuario_guardado">Tu registro se guardó correctamente</string>
     <string name="error_guardar_usuario">No se pudo guardar el registro. Inténtalo de nuevo.</string>
+
+    <!-- Navigation Tabs -->
+    <string name="tab_inicio">Inicio</string>
+    <string name="tab_mantenimiento">Mantenimiento</string>
+    <string name="tab_gastos">Gastos</string>
+    <string name="tab_perfil">Perfil</string>
+
+    <!-- Dashboard / Inicio -->
+    <string name="next_maintenance_title">Próximo mantenimiento</string>
+    <string name="ver_detalles">Ver detalles</string>
+    <string name="stats_mantenimientos">Mantenimientos</string>
+    <string name="stats_gastos_mes">Gastos del mes</string>
+    <string name="stats_proximo_servicio">Próximo servicio</string>
+    <string name="quick_mantenimiento">+ Mantenimiento</string>
+    <string name="quick_gasto">+ Gasto</string>
+    <string name="quick_recordatorio">+ Recordatorio</string>
+    <string name="notificaciones_titulo">Notificaciones y Avisos</string>
+    <string name="sin_avisos_pendientes">No tienes avisos urgentes pendientes.</string>
+
+    <!-- Mantenimiento -->
+    <string name="mantenimiento_titulo">Mantenimiento</string>
+    <string name="servicios_monitoreados">%d servicios monitoreados</string>
+    <string name="filter_todos">Todos</string>
+    <string name="filter_proximos">Próximos</string>
+    <string name="filter_realizados">Realizados</string>
+    <string name="status_proximo">Próximo</string>
+    <string name="status_pendiente">Pendiente</string>
+    <string name="status_realizado">Realizado</string>
+    <string name="ver_historial">Ver Historial</string>
+    <string name="empty_mantenimiento">No hay mantenimientos registrados.</string>
+    <string name="empty_mantenimiento_btn">Agregar mantenimiento</string>
+
+    <!-- Formulario Agregar Mantenimiento -->
+    <string name="agregar_mantenimiento_titulo">Agregar Mantenimiento</string>
+    <string name="editar_mantenimiento_titulo">Editar Mantenimiento</string>
+    <string name="tipo_mantenimiento_label">TIPO DE MANTENIMIENTO</string>
+    <string name="tipo_mantenimiento_hint">Ej. Cambio de aceite, Frenos</string>
+    <string name="fecha_label">FECHA</string>
+    <string name="fecha_hint">AAAA-MM-DD</string>
+    <string name="kilometraje_label">KILOMETRAJE</string>
+    <string name="kilometraje_hint">Ej. 85000</string>
+    <string name="costo_label">COSTO ($)</string>
+    <string name="costo_hint">Ej. 1200.00</string>
+    <string name="taller_label">TALLER</string>
+    <string name="taller_hint">Ej. Taller Central Auto</string>
+    <string name="proxima_fecha_label">PRÓXIMA FECHA RECOMENDADA</string>
+    <string name="proxima_fecha_hint">AAAA-MM-DD</string>
+    <string name="proximo_km_label">PRÓXIMO KILOMETRAJE RECOMENDADO</string>
+    <string name="proximo_km_hint">Ej. 95000</string>
+    <string name="descripcion_label">DESCRIPCIÓN O NOTAS (OPCIONAL)</string>
+    <string name="descripcion_hint">Notas sobre piezas o recomendaciones del taller</string>
+    <string name="guardar_mantenimiento">Guardar mantenimiento</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="mantenimiento_guardado">Mantenimiento guardado correctamente</string>
+    <string name="error_guardar_mantenimiento">Por favor completa los campos requeridos adecuadamente.</string>
+
+    <!-- Gastos -->
+    <string name="gastos_titulo">Gastos</string>
+    <string name="gasto_del_mes">Gasto del mes</string>
+    <string name="gasto_del_ano">Gasto del año</string>
+    <string name="promedio_mensual">Promedio mensual</string>
+    <string name="comparacion_mes_anterior">vs. mes anterior</string>
+    <string name="desglose_por_categoria">Desglose por categoría</string>
+    <string name="ultimos_gastos">Últimos gastos</string>
+    <string name="agregar_gasto">+ Nuevo gasto</string>
+    <string name="empty_gastos">No hay gastos registrados.</string>
+
+    <string name="categoria_mantenimiento">Mantenimiento</string>
+    <string name="categoria_combustible">Combustible</string>
+    <string name="categoria_reparaciones">Reparaciones</string>
+    <string name="categoria_llantas">Llantas</string>
+    <string name="categoria_otros">Otros</string>
+
+    <string name="concepto_label">CONCEPTO</string>
+    <string name="concepto_hint">Ej. Gasolina magna, Alineación</string>
+    <string name="monto_label">MONTO ($)</string>
+    <string name="monto_hint">Ej. 500.00</string>
+
+    <!-- Historial -->
+    <string name="historial_titulo">Historial</string>
+    <string name="resumen_del_ano">Resumen del año</string>
+    <string name="total_servicios">Total de servicios</string>
+    <string name="total_gastado">Total gastado</string>
+    <string name="timeline_servicios">Línea de tiempo de mantenimientos</string>
+    <string name="empty_historial">Aún no hay servicios completados en el historial.</string>
+
+    <!-- Recordatorios -->
+    <string name="recordatorios_titulo">Recordatorios</string>
+    <string name="nuevo_recordatorio">+ Nuevo recordatorio</string>
+    <string name="prioridad_alta">Alta</string>
+    <string name="prioridad_media">Media</string>
+    <string name="prioridad_baja">Baja</string>
+    <string name="prioridad_label">PRIORIDAD</string>
+    <string name="titulo_label">TÍTULO</string>
+    <string name="titulo_hint">Ej. Verificar presión de llantas</string>
+    <string name="empty_recordatorios">No hay recordatorios creados.</string>
+
+    <!-- Perfil -->
+    <string name="perfil_titulo">Perfil</string>
+    <string name="estado_cuenta">Usuario Activo</string>
+    <string name="vehiculo_registrado">Vehículo Registrado</string>
+    <string name="editar_vehiculo">Editar Vehículo</string>
+    <string name="opciones">Opciones</string>
+    <string name="notificaciones_opcion">Notificaciones y Alertas</string>
+    <string name="configuracion_opcion">Configuración</string>
+    <string name="ayuda_opcion">Ayuda y Soporte</string>
+    <string name="acerca_opcion">Acerca de CarCare</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+    <string name="cerrar_sesion_mensaje">Has cerrado sesión correctamente.</string>
+
+    <!-- User / Vehicle Editing -->
+    <string name="nombre_vehiculo_label">NOMBRE DEL VEHÍCULO</string>
+    <string name="nombre_vehiculo_hint">Ej. Mi Camioneta</string>
+    <string name="marca_label">MARCA</string>
+    <string name="marca_hint">Ej. Ford</string>
+    <string name="modelo_label">MODELO</string>
+    <string name="modelo_hint">Ej. F-150</string>
+    <string name="ano_label">AÑO</string>
+    <string name="ano_hint">Ej. 2018</string>
+    <string name="placas_label">PLACAS</string>
+    <string name="placas_hint">Ej. ABC-123</string>
+
+    <!-- Validation & General -->
+    <string name="campo_obligatorio">Este campo es obligatorio</string>
+    <string name="numero_invalido">Ingresa un número válido</string>
+    <string name="guardado_exito">Información guardada con éxito</string>
     <string name="carcare_logo_descripcion">Logotipo de CarCare</string>
 </resources>

@@ -9,6 +9,7 @@ data class User(
     val id: Int = 0,
     val nombre: String,
     val apellidos: String,
-    val direccion: String,
-    val telefono: String,
+    val direccion: String = "",
+    val telefono: String = "",
+    val email: String = "usuario@carcare.app"
 )
