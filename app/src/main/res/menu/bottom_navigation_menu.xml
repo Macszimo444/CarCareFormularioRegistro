@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_inicio"
+        android:icon="@drawable/ic_inicio"
+        android:title="@string/tab_inicio" />
+    <item
+        android:id="@+id/nav_mantenimiento"
+        android:icon="@drawable/ic_mantenimiento"
+        android:title="@string/tab_mantenimiento" />
+    <item
+        android:id="@+id/nav_gastos"
+        android:icon="@drawable/ic_gastos"
+        android:title="@string/tab_gastos" />
+    <item
+        android:id="@+id/nav_perfil"
+        android:icon="@drawable/ic_perfil"
+        android:title="@string/tab_perfil" />
+</menu>

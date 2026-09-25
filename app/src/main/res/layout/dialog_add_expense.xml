@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/carcare_card"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Agregar Nuevo Gasto"
+        android:textColor="@color/carcare_text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Categoría Spinner / Dropdown -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="6dp"
+        android:text="CATEGORÍA"
+        android:textColor="@color/carcare_electric_blue"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCategory"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxBackgroundColor="@color/carcare_field"
+        app:boxStrokeColor="@color/carcare_border">
+
+        <AutoCompleteTextView
+            android:id="@+id/actCategory"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:inputType="none"
+            android:paddingHorizontal="16dp"
+            android:text="Combustible"
+            android:textColor="@color/carcare_text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Concepto -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="6dp"
+        android:text="@string/concepto_label"
+        android:textColor="@color/carcare_text_muted"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilConcept"
+        style="@style/Widget.CarCare.TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etConcept"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="@string/concepto_hint"
+            android:inputType="textCapSentences"
+            android:textColor="@color/carcare_text_primary"
+            android:textColorHint="@color/carcare_text_muted" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Monto -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="6dp"
+        android:text="@string/monto_label"
+        android:textColor="@color/carcare_text_muted"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilAmount"
+        style="@style/Widget.CarCare.TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etAmount"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="@string/monto_hint"
+            android:inputType="numberDecimal"
+            android:textColor="@color/carcare_text_primary"
+            android:textColorHint="@color/carcare_text_muted" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Fecha -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="6dp"
+        android:text="@string/fecha_label"
+        android:textColor="@color/carcare_text_muted"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilDate"
+        style="@style/Widget.CarCare.TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etDate"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="@string/fecha_hint"
+            android:inputType="date"
+            android:textColor="@color/carcare_text_primary"
+            android:textColorHint="@color/carcare_text_muted" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Actions -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancelar"
+            android:textColor="@color/carcare_text_secondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Guardar Gasto"
+            app:backgroundTint="@color/carcare_electric_blue" />
+    </LinearLayout>
+</LinearLayout>
