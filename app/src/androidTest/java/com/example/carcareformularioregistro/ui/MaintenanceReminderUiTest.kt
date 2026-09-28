@@ -222,6 +222,75 @@ class MaintenanceReminderUiTest {
         assertEquals(125000, runBlocking { database.vehicleDao().getById(vehicleId)?.mileage })
     }
 
+    @Test
+    fun completingPendingReviewUpdatesTheSameServiceAndConsumesOnlyItsReminder() {
+        val serviceId = runBlocking {
+            val serviceId = database.maintenanceDao().insert(Maintenance(vehicleId = vehicleId, type = "$prefix Pendiente",
+                date = "2026-01-01", mileage = 90000, cost = 0.0, workshop = "", nextDate = "", nextMileage = 0,
+                status = Maintenance.STATUS_PENDIENTE)).toInt()
+            val reminder = requireNotNull(database.reminderDao().getById(independentReminderId))
+            database.reminderDao().update(reminder.copy(maintenanceId = serviceId))
+            serviceId
+        }
+        openForm(completeReminderId = independentReminderId)
+        onView(withId(R.id.actStatus)).check(matches(withText(Maintenance.STATUS_REALIZADO)))
+        onView(withId(R.id.etMileage)).check(matches(withText("120000")))
+        onView(withId(R.id.btnSaveMaintenance)).perform(click())
+        awaitDatabase("review completed") { database.reminderDao().getById(independentReminderId) == null }
+        val services = runBlocking { database.maintenanceDao().getAllMaintenances().filter { it.vehicleId == vehicleId } }
+        assertEquals(1, services.size)
+        assertEquals(serviceId, services.single().id)
+        assertEquals(Maintenance.STATUS_REALIZADO, services.single().status)
+        assertEquals(120000, services.single().mileage)
+    }
+
+    @Test
+    fun completingNextReviewKeepsTheHistoricalServiceAndCreatesOneNewService() {
+        val oldId = runBlocking {
+            val id = database.maintenanceDao().insert(Maintenance(vehicleId = vehicleId, type = "$prefix Aceite",
+                date = "2026-01-01", mileage = 90000, cost = 700.0, workshop = "Taller anterior", nextDate = "", nextMileage = 130000,
+                status = Maintenance.STATUS_REALIZADO)).toInt()
+            val reminder = requireNotNull(database.reminderDao().getById(independentReminderId))
+            database.reminderDao().update(reminder.copy(maintenanceId = id))
+            id
+        }
+        openForm(completeReminderId = independentReminderId)
+        onView(withId(R.id.etType)).check(matches(withText("$prefix Aceite")))
+        scenario!!.recreate()
+        onView(withId(R.id.btnSaveMaintenance)).perform(click())
+        awaitDatabase("next review completed") { database.reminderDao().getById(independentReminderId) == null }
+        val services = runBlocking { database.maintenanceDao().getAllMaintenances().filter { it.vehicleId == vehicleId } }
+        assertEquals(2, services.size)
+        val old = services.single { it.id == oldId }
+        assertEquals(90000, old.mileage)
+        assertEquals(700.0, old.cost, 0.01)
+        assertEquals(0, old.nextMileage)
+        assertEquals(120000, services.single { it.id != oldId }.mileage)
+    }
+
+    @Test
+    fun unlinkedReviewPrefillsServiceAndReceiptCanBeRemovedWithoutLosingHistory() {
+        openForm(completeReminderId = independentReminderId)
+        onView(withId(R.id.etType)).check(matches(withText("$prefix Independiente")))
+        onView(withId(R.id.btnSaveMaintenance)).perform(click())
+        awaitDatabase("standalone review completed") { database.reminderDao().getById(independentReminderId) == null }
+        val service = runBlocking { database.maintenanceDao().getAllMaintenances().single { it.vehicleId == vehicleId } }
+        val store = com.example.carcareformularioregistro.utils.ReceiptStore(context)
+        val bytes = java.io.ByteArrayOutputStream()
+        val bitmap = android.graphics.Bitmap.createBitmap(4, 4, android.graphics.Bitmap.Config.ARGB_8888)
+        bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bytes); bitmap.recycle()
+        val receipt = store.import(java.io.ByteArrayInputStream(bytes.toByteArray()))
+        try {
+            runBlocking { database.maintenanceDao().update(service.copy(receipt = receipt)) }
+            openForm(service.id)
+            onView(withId(R.id.btnReceipt)).perform(scrollTo(), click())
+            onView(withText("Quitar del servicio")).perform(click())
+            onView(withId(R.id.btnSaveMaintenance)).perform(click())
+            awaitDatabase("receipt removed") { database.maintenanceDao().getById(service.id)?.receipt == null }
+            assertNotNull(runBlocking { database.maintenanceDao().getById(service.id) })
+        } finally { store.delete(receipt) }
+    }
+
     private fun chooseTarget(label: Int) {
         onView(withId(R.id.actTargetMode)).perform(scrollTo(), click())
         onView(withText(label)).inRoot(isPlatformPopup()).perform(click())
@@ -241,10 +310,10 @@ class MaintenanceReminderUiTest {
         throw AssertionError("Reminder did not load")
     }
 
-    private fun openForm(maintenanceId: Int = 0, expectedMileage: String = "120000") {
+    private fun openForm(maintenanceId: Int = 0, expectedMileage: String = "120000", completeReminderId: Int = 0) {
         scenario?.close()
         scenario = ActivityScenario.launch(Intent(context, AddMaintenanceActivity::class.java)
-            .putExtra("maintenance_id", maintenanceId))
+            .putExtra("maintenance_id", maintenanceId).putExtra("complete_reminder_id", completeReminderId))
         val deadline = SystemClock.elapsedRealtime() + 5_000
         do {
             var loaded = false

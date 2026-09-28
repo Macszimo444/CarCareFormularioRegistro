@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.telephony.PhoneNumberFormattingTextWatcher
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.carcareformularioregistro.ui.BackupActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -26,6 +28,9 @@ import kotlinx.coroutines.launch
 class RegistroActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegistroBinding
     private val database by lazy { AppDatabase.getInstance(applicationContext) }
+    private val restoreBackup = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        loadProfile(false)
+    }
     private var existingUser: User? = null
     private var profileLoaded = false
     private var loading = false
@@ -55,6 +60,8 @@ class RegistroActivity : AppCompatActivity() {
         binding.btnOptionalProfile.setOnClickListener {
             binding.optionalProfileFields.isVisible = !binding.optionalProfileFields.isVisible
         }
+        binding.btnRestoreBackup.isVisible = !editing
+        binding.btnRestoreBackup.setOnClickListener { restoreBackup.launch(Intent(this, BackupActivity::class.java)) }
         binding.btnPrivacy.setOnClickListener {
             startActivity(Intent(this, GuidanceActivity::class.java).putExtra(GuidanceActivity.EXTRA_MODE, GuidanceActivity.MODE_PRIVACY))
         }

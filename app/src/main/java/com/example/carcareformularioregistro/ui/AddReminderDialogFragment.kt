@@ -48,6 +48,10 @@ class AddReminderDialogFragment : DialogFragment() {
         binding.tvTitle.setText(if (editingId > 0) R.string.reminder_edit_title else R.string.reminder_new_title)
         binding.btnCancel.setOnClickListener { dismiss() }
         binding.btnSave.setOnClickListener { saveReminder() }
+        binding.btnTargetHelp.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle(targetMode.label).setMessage(targetMode.help)
+                .setPositiveButton("Entendido", null).show()
+        }
         binding.actTargetMode.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line,
             ReviewTargetMode.entries.map { getString(it.label) }))
         binding.actTargetMode.setOnItemClickListener { _, _, position, _ -> showTargetMode(ReviewTargetMode.entries[position]) }
@@ -101,7 +105,7 @@ class AddReminderDialogFragment : DialogFragment() {
         binding.actTargetMode.setText(getString(mode.label), false)
         binding.tilDueDate.isVisible = mode.usesDate
         binding.tilDueMileage.isVisible = mode.usesMileage
-        binding.tvTargetHelp.setText(mode.help)
+        binding.tvTargetHelp.setText(mode.shortHelp)
         binding.tilDueDate.error = null
         binding.tilDueMileage.error = null
     }

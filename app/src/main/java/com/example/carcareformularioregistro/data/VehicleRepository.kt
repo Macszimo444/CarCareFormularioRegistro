@@ -77,6 +77,7 @@ class VehicleRepository private constructor(context: Context) {
     }
 
     suspend fun deleteVehicleAndRecords(id: Int) {
+        val receiptNames = db.maintenanceDao().getAllMaintenances().filter { it.vehicleId == id }.mapNotNull { it.receipt }
         val reminderIds = db.withTransaction {
             val reminders = db.reminderDao().getForVehicle(id).map { it.id }
             db.reminderDao().deleteForVehicle(id)
@@ -86,6 +87,10 @@ class VehicleRepository private constructor(context: Context) {
             val cars = db.vehicleDao().getAllVehicles()
             if (cars.isNotEmpty() && cars.none { it.isPrimary }) db.vehicleDao().markPrimary(cars.first().id)
             reminders
+        }
+        receiptNames.forEach {
+            if (db.maintenanceDao().countReceiptReferences(it) == 0)
+                com.example.carcareformularioregistro.utils.ReceiptStore(app).delete(it)
         }
         reminderIds.forEach {
             NotificationHelper.cancelReminderAlarm(app, it)

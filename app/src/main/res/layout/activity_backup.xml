@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/carcare_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnBack" style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:text="Volver" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/backup_title"
+            android:textSize="24sp" android:textStyle="bold" android:textColor="@color/carcare_text_primary" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:text="@string/backup_intro" android:textSize="16sp" android:textColor="@color/carcare_text_primary" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnExport"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:minHeight="52dp"
+            android:text="@string/backup_export" android:textAllCaps="false" app:backgroundTint="@color/carcare_electric_blue" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnImport" style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:minHeight="52dp"
+            android:text="@string/backup_import" android:textAllCaps="false" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp"
+            android:text="@string/backup_merge" android:textSize="14sp" android:textColor="@color/carcare_text_secondary" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:text="@string/backup_privacy" android:textSize="14sp" android:textColor="@color/carcare_text_secondary" />
+        <TextView android:id="@+id/tvStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp"
+            android:accessibilityLiveRegion="polite" android:textSize="16sp" android:textColor="@color/carcare_text_primary" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

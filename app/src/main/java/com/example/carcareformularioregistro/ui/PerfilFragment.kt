@@ -44,6 +44,7 @@ class PerfilFragment : Fragment() {
         binding.optGuide.setOnClickListener { guidance(GuidanceActivity.MODE_GUIDE) }
         binding.optHelp.setOnClickListener { guidance(GuidanceActivity.MODE_HELP) }
         binding.optPrivacy.setOnClickListener { guidance(GuidanceActivity.MODE_PRIVACY) }
+        binding.btnBackup.setOnClickListener { startActivity(Intent(requireContext(), BackupActivity::class.java)) }
         binding.btnLogout.setOnClickListener { leaveProfile() }
         binding.btnDeleteData.setOnClickListener { confirmDeleteData() }
         viewLifecycleOwner.lifecycleScope.launch {
@@ -94,6 +95,7 @@ class PerfilFragment : Fragment() {
             try {
                 val reminders = db.reminderDao().getAllReminders()
                 withContext(Dispatchers.IO) { db.clearAllTables() }
+                withContext(Dispatchers.IO) { com.example.carcareformularioregistro.utils.ReceiptStore(context).clear() }
                 reminders.forEach { NotificationHelper.cancelReminderAlarm(context, it.id) }
                 context.getSharedPreferences("reminder_preferences", android.content.Context.MODE_PRIVATE).edit().clear().apply()
                 VehicleRepository.getInstance(context).selectVehicle(0)

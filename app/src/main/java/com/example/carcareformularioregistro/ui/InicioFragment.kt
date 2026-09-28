@@ -49,6 +49,8 @@ class InicioFragment : Fragment() {
         binding.btnViewServiceDetails.setOnClickListener {
             next?.maintenanceId?.let {
                 startActivity(Intent(requireContext(), AddMaintenanceActivity::class.java).putExtra("maintenance_id", it))
+            } ?: next?.reminderId?.let {
+                startActivity(Intent(requireContext(), RecordatoriosActivity::class.java).putExtra("open_reminder_id", it))
             } ?: openReminders()
         }
         viewLifecycleOwner.lifecycleScope.launch {
@@ -78,6 +80,9 @@ class InicioFragment : Fragment() {
         binding.tvNextServiceTitle.text = next?.title ?: getString(R.string.home_no_actions)
         binding.tvNextServiceRemaining.text = next?.details ?: getString(R.string.home_no_actions_details)
         binding.btnViewServiceDetails.isVisible = next != null
+        val pending = data.maintenance.count { it.status != Maintenance.STATUS_REALIZADO }
+        binding.tvPendingServices.text = resources.getQuantityString(R.plurals.home_pending_count, pending, pending)
+        binding.tvPendingServices.isVisible = vehicle != null && pending > 0
         binding.tvMonthlySummary.text = getString(R.string.home_monthly_summary,
             data.maintenance.count { it.status == Maintenance.STATUS_REALIZADO },
             NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-MX"))

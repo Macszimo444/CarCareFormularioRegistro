@@ -5,6 +5,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MaintenanceDao {
+    @Query("SELECT COUNT(*) FROM maintenances WHERE receipt = :name")
+    suspend fun countReceiptReferences(name: String): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(maintenance: Maintenance): Long
 

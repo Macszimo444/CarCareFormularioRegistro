@@ -19,7 +19,8 @@ class ReminderAdapter(
     private var items: List<Reminder> = emptyList(),
     private val onToggle: (Reminder, Boolean) -> Unit = { _, _ -> },
     private val onDelete: ((Reminder) -> Unit)? = null,
-    private val onEdit: ((Reminder) -> Unit)? = null
+    private val onEdit: ((Reminder) -> Unit)? = null,
+    private val onComplete: ((Reminder) -> Unit)? = null
 ) : RecyclerView.Adapter<ReminderAdapter.ViewHolder>() {
     private var vehicleMileage = 0
     fun updateData(newItems: List<Reminder>, mileage: Int = vehicleMileage) {
@@ -73,6 +74,8 @@ class ReminderAdapter(
             binding.switchEnable.setOnCheckedChangeListener(null)
             binding.switchEnable.isChecked = item.enabled
             binding.switchEnable.setOnCheckedChangeListener { _, checked -> onToggle(item, checked) }
+            binding.btnCompleteReminder.setOnClickListener { onComplete?.invoke(item) }
+            binding.btnCompleteReminder.contentDescription = "Marcar ${item.title} como realizada"
             binding.btnDeleteReminder.setOnClickListener { onDelete?.invoke(item) }
             binding.btnEditReminder.setOnClickListener { onEdit?.invoke(item) }
             binding.btnEditReminder.contentDescription = "Editar ${item.title}"

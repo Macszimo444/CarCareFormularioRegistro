@@ -8,11 +8,12 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [User::class, Vehicle::class, Maintenance::class, Expense::class, Reminder::class],
-    version = 3,
+    entities = [User::class, Vehicle::class, Maintenance::class, Expense::class, Reminder::class, ImportedBackup::class],
+    version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun importedBackupDao(): ImportedBackupDao
     abstract fun userDao(): UserDao
     abstract fun vehicleDao(): VehicleDao
     abstract fun maintenanceDao(): MaintenanceDao
@@ -98,6 +99,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE maintenances ADD COLUMN receipt TEXT")
+                db.execSQL("CREATE TABLE IF NOT EXISTS imported_backups (fingerprint TEXT NOT NULL PRIMARY KEY, importedAt INTEGER NOT NULL)")
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -105,7 +113,7 @@ abstract class AppDatabase : RoomDatabase() {
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, DATABASE_NAME,
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build().also { instance = it }
             }
     }

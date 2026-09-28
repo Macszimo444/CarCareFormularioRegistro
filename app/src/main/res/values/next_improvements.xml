@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="receipt_add">Adjuntar comprobante</string>
+    <string name="receipt_manage">Ver o cambiar comprobante</string>
+    <string name="receipt_help">Opcional: una imagen JPG, PNG, WebP o un PDF, hasta 10 MB.</string>
+    <string name="complete_review">Marcar como realizada</string>
+    <string name="complete_review_title">Registrar revisión realizada</string>
+    <string name="complete_review_intro">Confirma cuándo se hizo y el costo. Al guardar, el aviso quedará resuelto y el servicio aparecerá en tu historial.</string>
+    <string name="completion_requires_done">Para resolver esta revisión, el estado debe ser Realizado.</string>
+    <string name="service_mileage_short">Puedes ajustar la lectura si el servicio fue en otro momento.</string>
+    <string name="field_help">¿Qué significa?</string>
+    <string name="target_short_date">El aviso se programa para la fecha elegida.</string>
+    <string name="target_short_mileage">Se comprueba al actualizar el kilometraje en Inicio.</string>
+    <string name="target_short_both">Se toma la fecha o el kilometraje que ocurra primero.</string>
+    <string name="backup_title">Respaldo y restauración</string>
+    <string name="backup_intro">Guarda una copia de tu perfil, vehículos, mantenimientos, gastos, recordatorios y comprobantes. Tú eliges dónde guardarla.</string>
+    <string name="backup_privacy">El archivo contiene tus datos y no lleva contraseña. Guárdalo en un lugar privado. No incluye permisos de Android ni ajustes de notificaciones del teléfono.</string>
+    <string name="backup_export">Guardar respaldo</string>
+    <string name="backup_import">Restaurar desde archivo</string>
+    <string name="backup_merge">Se añadirán los vehículos y sus registros sin borrar los actuales. Si ya tienes un perfil, se conservará. Importar respaldos distintos del mismo coche puede crear copias adicionales.</string>
+    <string name="backup_done">Respaldo guardado</string>
+    <string name="backup_restored">Datos restaurados. Revisa tus recordatorios y los permisos de avisos en este teléfono.</string>
+    <string name="backup_error">No se pudo completar la operación. Comprueba que sea un respaldo válido de CarCare y que tengas espacio disponible.</string>
+    <string name="pdf_export">Guardar historial en PDF</string>
+    <string name="pdf_saved">PDF guardado en la ubicación que elegiste</string>
+    <plurals name="home_pending_count">
+        <item quantity="one">%d servicio por realizar</item>
+        <item quantity="other">%d servicios por realizar</item>
+    </plurals>
+</resources>

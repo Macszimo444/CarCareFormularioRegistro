@@ -74,6 +74,16 @@
             android:textColor="@color/carcare_text_secondary"
             android:textSize="13sp" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTargetHelp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/field_help"
+            android:textAllCaps="false"
+            android:textColor="@color/carcare_electric_blue" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilDueDate"
             style="@style/Widget.CarCare.LabeledInput"

@@ -161,6 +161,9 @@ class RecordatoriosActivity : AppCompatActivity() {
                     }
                 }
             },
+            onComplete = { reminder ->
+                startActivity(Intent(this, AddMaintenanceActivity::class.java).putExtra("complete_reminder_id", reminder.id))
+            },
             onDelete = { confirmDelete(it) },
             onEdit = { reminder ->
                 if (supportFragmentManager.findFragmentByTag("AddReminderDialog") == null)
@@ -202,6 +205,20 @@ class RecordatoriosActivity : AppCompatActivity() {
                 Snackbar.make(binding.root, R.string.form_load_error, Snackbar.LENGTH_LONG).show()
                 emit(emptyList())
             }.collectLatest { list ->
+                val targetId = intent.getIntExtra("open_reminder_id", 0)
+                val target = list.firstOrNull { it.id == targetId }
+                if (target != null) {
+                    intent.removeExtra("open_reminder_id")
+                    AlertDialog.Builder(this@RecordatoriosActivity).setTitle(target.title)
+                        .setMessage(listOf(target.description, target.dueDate,
+                            target.dueMileage.takeIf { it > 0 }?.let { "$it km" }.orEmpty()).filter { it.isNotBlank() }.joinToString("\n"))
+                        .setPositiveButton(R.string.complete_review) { _, _ ->
+                            startActivity(Intent(this@RecordatoriosActivity, AddMaintenanceActivity::class.java)
+                                .putExtra("complete_reminder_id", target.id))
+                        }.setNeutralButton(R.string.reminder_edit_action) { _, _ ->
+                            AddReminderDialogFragment.edit(target.id).show(supportFragmentManager, "AddReminderDialog")
+                        }.setNegativeButton(R.string.cancelar, null).show()
+                }
                 reminders = list
                 adapter.updateData(list, mileage)
                 binding.containerEmptyRecordatorios.isVisible = list.isEmpty()

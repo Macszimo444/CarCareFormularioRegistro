@@ -135,6 +135,16 @@
                 android:gravity="start|center_vertical"
                 android:textColor="@color/carcare_electric_blue" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMileageHelp"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/field_help"
+                android:textAllCaps="false"
+                android:textColor="@color/carcare_electric_blue" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilMileage"
                 style="@style/Widget.CarCare.LabeledInput"
@@ -230,6 +240,23 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReceipt"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/receipt_add"
+                android:textAllCaps="false"
+                android:textColor="@color/carcare_electric_blue" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/receipt_help"
+                android:textColor="@color/carcare_text_secondary"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTogglePlan"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="match_parent"
@@ -281,6 +308,16 @@
                     android:layout_marginTop="8dp"
                     android:textColor="@color/carcare_text_secondary"
                     android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTargetHelp"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/field_help"
+                    android:textAllCaps="false"
+                    android:textColor="@color/carcare_electric_blue" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilNextDate"

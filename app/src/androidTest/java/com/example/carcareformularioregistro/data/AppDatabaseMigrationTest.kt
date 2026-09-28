@@ -35,7 +35,7 @@ class AppDatabaseMigrationTest {
 
     private fun openDatabase(): AppDatabase = Room.databaseBuilder(
         context, AppDatabase::class.java, databaseName,
-    ).addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+    ).addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
         .build().also { database = it }
 
     /** Independent fixture for the released v2 schema; never builds v2 via the migration under test. */
@@ -93,7 +93,7 @@ class AppDatabaseMigrationTest {
             oldDatabase.version = 1
         }
         val migrated = openDatabase()
-        assertEquals(3, migrated.openHelper.readableDatabase.version)
+        assertEquals(4, migrated.openHelper.readableDatabase.version)
         assertEquals(2, migrated.userDao().obtenerTodos().size)
         assertEquals("María", migrated.userDao().obtenerPorId(7)?.nombre)
         assertEquals("Calle Uno 20", migrated.userDao().obtenerPorId(7)?.direccion)
@@ -128,7 +128,7 @@ class AppDatabaseMigrationTest {
             old.execSQL("INSERT INTO reminders VALUES (16, 99, 'Registro sin coche', 'Dato antiguo', '2027-04-01', 45000, 'Media', 1)")
         }
         val migrated = openDatabase()
-        assertEquals(3, migrated.openHelper.readableDatabase.version)
+        assertEquals(4, migrated.openHelper.readableDatabase.version)
         assertEquals(User(21, "Elena", "Ruiz", "Calle 7", "5551234567", "elena@example.com"),
             migrated.userDao().obtenerPorId(21))
         assertEquals(Vehicle(3, "Auto familiar", "Nissan", "Versa", 2020, 85000, "ABC-123",
@@ -185,9 +185,32 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    fun upgradeFromVersion3AddsReceiptsWithoutChangingExistingServiceOrReminder() = runBlocking {
+        createVersion2Database { old ->
+            old.execSQL("INSERT INTO vehicles VALUES (1, 'Auto', 'Toyota', 'Yaris', 2020, 50000, '', NULL)")
+            old.execSQL("INSERT INTO maintenances VALUES (5, 1, 'Aceite', '2026-01-01', 40000, 900, 'Taller', '2027-01-01', 60000, 'Nota', 'Realizado')")
+            old.execSQL("INSERT INTO reminders VALUES (8, 1, 'Revisión', '', '2027-01-01', 60000, 'Media', 1)")
+        }
+        context.openOrCreateDatabase(databaseName, Context.MODE_PRIVATE, null).use { old ->
+            old.execSQL("ALTER TABLE vehicles ADD COLUMN isPrimary INTEGER NOT NULL DEFAULT 0")
+            old.execSQL("UPDATE vehicles SET isPrimary = 1")
+            old.execSQL("ALTER TABLE reminders ADD COLUMN maintenanceId INTEGER")
+            old.execSQL("UPDATE reminders SET maintenanceId = 5")
+            old.version = 3
+        }
+        val migrated = openDatabase()
+        assertEquals(4, migrated.openHelper.readableDatabase.version)
+        assertEquals(50000, migrated.vehicleDao().getById(1)?.mileage)
+        assertEquals("Nota", migrated.maintenanceDao().getById(5)?.description)
+        assertNull(migrated.maintenanceDao().getById(5)?.receipt)
+        assertEquals(5, migrated.reminderDao().getById(8)?.maintenanceId)
+        assertEquals(0, migrated.importedBackupDao().count("new-file"))
+    }
+
+    @Test
     fun newInstallStartsEmptyAndLocalProfileAndMaintenanceSurviveReopening() = runBlocking {
         val fresh = openDatabase()
-        assertEquals(3, fresh.openHelper.readableDatabase.version)
+        assertEquals(4, fresh.openHelper.readableDatabase.version)
         assertNull(fresh.userDao().getPrimaryUser())
         assertEquals(0, fresh.vehicleDao().getVehicleCount())
         assertTrue(fresh.maintenanceDao().getAllMaintenances().isEmpty())

@@ -16,7 +16,8 @@ data class Maintenance(
     val nextDate: String,
     val nextMileage: Int,
     val description: String = "",
-    val status: String = STATUS_PROXIMO // "Próximo", "Pendiente", "Realizado"
+    val status: String = STATUS_PROXIMO, // "Próximo", "Pendiente", "Realizado"
+    val receipt: String? = null
 ) {
     companion object {
         const val STATUS_PROXIMO = "Próximo"

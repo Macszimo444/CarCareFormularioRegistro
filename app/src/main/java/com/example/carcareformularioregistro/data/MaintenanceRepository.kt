@@ -32,6 +32,10 @@ class MaintenanceRepository(context: Context) {
             db.maintenanceDao().deleteById(maintenance.id)
             linked
         }
+        maintenance.receipt?.let {
+            if (db.maintenanceDao().countReceiptReferences(it) == 0)
+                com.example.carcareformularioregistro.utils.ReceiptStore(app).delete(it)
+        }
         reminder?.let {
             NotificationHelper.cancelReminderAlarm(app, it.id)
             ReminderSettings(app).forget(it.id)
