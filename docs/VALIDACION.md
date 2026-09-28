@@ -1,3 +1,5 @@
+> Resultados de la integración inicial. La actualización actual está documentada en [Validación de mejoras](VALIDACION_MEJORAS.md).
+
 # Validación de dev-final
 
 Fecha: 25 de septiembre de 2026.

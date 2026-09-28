@@ -13,7 +13,8 @@ data class Reminder(
     val dueDate: String,
     val dueMileage: Int = 0,
     val priority: String = PRIORITY_MEDIA, // "Alta", "Media", "Baja"
-    val enabled: Boolean = true
+    val enabled: Boolean = true,
+    val maintenanceId: Int? = null
 ) {
     companion object {
         const val PRIORITY_ALTA = "Alta"

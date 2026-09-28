@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.data.Maintenance
 import com.example.carcareformularioregistro.data.MaintenanceRepository
 import kotlinx.coroutines.CancellationException
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class MaintenanceUiState(
+    val vehicleName: String = "",
     val items: List<Maintenance> = emptyList(),
     val totalCount: Int = 0,
     val query: String = "",
@@ -32,7 +32,7 @@ class MaintenanceViewModel(
     application: Application,
     private val savedState: SavedStateHandle
 ) : AndroidViewModel(application) {
-    private val repository = MaintenanceRepository(AppDatabase.getInstance(application).maintenanceDao())
+    private val repository = MaintenanceRepository(application)
     val query = savedState.getStateFlow("maintenance_query", "")
     val selectedTab = savedState.getStateFlow("maintenance_tab", 0)
     private val _deleteFailed = MutableStateFlow(false)
@@ -40,11 +40,12 @@ class MaintenanceViewModel(
 
     val uiState: StateFlow<MaintenanceUiState> = combine(
         repository.observeMaintenances(), query, selectedTab
-    ) { items, text, tab ->
+    ) { records, text, tab ->
         val filter = MaintenanceFilter.entries.getOrElse(tab) { MaintenanceFilter.ALL }
         MaintenanceUiState(
-            items = MaintenanceSearch.filter(items, text, filter),
-            totalCount = items.size,
+            vehicleName = records.vehicle?.displayName.orEmpty(),
+            items = MaintenanceSearch.filter(records.items, text, filter),
+            totalCount = records.items.size,
             query = text,
             filter = filter,
             loading = false

@@ -30,6 +30,7 @@ import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.data.Maintenance
 import com.example.carcareformularioregistro.data.User
 import com.example.carcareformularioregistro.data.Vehicle
+import com.example.carcareformularioregistro.data.VehicleRepository
 import com.example.carcareformularioregistro.utils.LocalSession
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.runBlocking
@@ -54,11 +55,14 @@ class MaintenanceSearchUiTest {
     private var createdUserId: Int? = null
     private var createdVehicleId: Int? = null
     private var wasSessionClosed = false
+    private var previousSelectedId = 0
     private var scenario: ActivityScenario<MainActivity>? = null
 
     @Before
     fun seedOnlyTestFixtures() = runBlocking {
         wasSessionClosed = LocalSession.isClosed(context)
+        previousSelectedId = context.getSharedPreferences("carcare_vehicle_selection", android.content.Context.MODE_PRIVATE)
+            .getInt("selected_id", 0)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             android.os.ParcelFileDescriptor.AutoCloseInputStream(
                 instrumentation.uiAutomation.executeShellCommand(
@@ -72,11 +76,11 @@ class MaintenanceSearchUiTest {
                 telefono = "5550000000",
             )).toInt()
         }
-        val vehicleId = database.vehicleDao().getPrimaryVehicle()?.id
-            ?: database.vehicleDao().insertVehicle(Vehicle(
-                name = "$prefix Auto", brand = "Prueba", model = "QA", year = 2020,
-                mileage = 120000, plates = "QA-TEST",
-            )).toInt().also { createdVehicleId = it }
+        val vehicleId = database.vehicleDao().insertVehicle(Vehicle(
+            name = "$prefix Auto", brand = "Prueba", model = "QA", year = 2020,
+            mileage = 120000, plates = "QA-TEST",
+        )).toInt().also { createdVehicleId = it }
+        VehicleRepository.getInstance(context).selectVehicle(vehicleId)
         val rows = listOf(
             row(vehicleId, "Cambio de aceite", Maintenance.STATUS_REALIZADO, 120000, "Taller Lopez"),
             row(vehicleId, "Cambio de aceite", Maintenance.STATUS_PROXIMO, 125000, "Taller Central"),
@@ -102,13 +106,14 @@ class MaintenanceSearchUiTest {
         createdUserId?.let { id ->
             database.openHelper.writableDatabase.execSQL("DELETE FROM usuarios WHERE id = ?", arrayOf(id))
         }
+        VehicleRepository.getInstance(context).selectVehicle(previousSelectedId)
         if (wasSessionClosed) LocalSession.close(context) else LocalSession.resume(context)
     }
 
     @Test
     fun typingTabsClearEmptyRoomChangesAndNavigationWorkTogether() {
         scenario = ActivityScenario.launch(MainActivity::class.java)
-        waitFor("home loaded") { it.findViewById<View>(R.id.cardVehicle) != null }
+        waitFor("home loaded") { it.findViewById<View>(R.id.btnVehicles) != null }
         onView(withId(R.id.nav_mantenimiento)).perform(click())
         waitFor("search displayed") { it.findViewById<View>(R.id.etSearchMaintenance) != null }
 
@@ -118,6 +123,13 @@ class MaintenanceSearchUiTest {
             it.findViewById<EditText>(R.id.etSearchMaintenance)?.text?.toString() == "$prefix a"
         }
         awaitIds(fixtures.map { it.id }.toSet())
+        waitFor("search, tabs and results keep space with keyboard open") { root ->
+            root.findViewById<EditText>(R.id.etSearchMaintenance)?.hasFocus() == true &&
+                (root.findViewById<View>(R.id.tabFilters)?.height ?: 0) > 0 &&
+                (root.findViewById<View>(R.id.rvMaintenances)?.height ?: 0) > 0 &&
+                (root.findViewById<View>(R.id.bottomNavigation)?.height ?: Int.MAX_VALUE) < 400
+        }
+        captureScreenshot("maintenance-keyboard.png")
         onView(withId(R.id.etSearchMaintenance)).perform(typeTextIntoFocusedView("c"))
         waitFor("typed query $prefix ac") {
             it.findViewById<EditText>(R.id.etSearchMaintenance)?.text?.toString() == "$prefix ac"
@@ -143,7 +155,7 @@ class MaintenanceSearchUiTest {
         awaitIds(setOf(fixtures[1].id))
         val upcomingIds = runBlocking {
             database.maintenanceDao().getAllMaintenances()
-                .filter { it.status == Maintenance.STATUS_PROXIMO }.map { it.id }.toSet()
+                .filter { it.vehicleId == createdVehicleId && it.status == Maintenance.STATUS_PROXIMO }.map { it.id }.toSet()
         }
         // Use Material's actual X control, not setText, and retain the selected tab.
         onView(withId(R.id.etSearchMaintenance)).perform(click())
@@ -182,7 +194,7 @@ class MaintenanceSearchUiTest {
         }
         awaitIds(setOf(fixtures[1].id))
         onView(withId(R.id.nav_inicio)).perform(click())
-        waitFor("home after leaving search") { it.findViewById<View>(R.id.cardVehicle) != null }
+        waitFor("home after leaving search") { it.findViewById<View>(R.id.btnVehicles) != null }
         onView(withId(R.id.nav_mantenimiento)).perform(click())
         waitFor("search retained after bottom navigation") { root ->
             root.findViewById<EditText>(R.id.etSearchMaintenance)?.text?.toString() == "$prefix aceite"
@@ -196,7 +208,7 @@ class MaintenanceSearchUiTest {
         val original = fixtures[2]
         val updatedType = "${original.type} revisado"
         scenario = ActivityScenario.launch(MainActivity::class.java)
-        waitFor("home loaded") { it.findViewById<View>(R.id.cardVehicle) != null }
+        waitFor("home loaded") { it.findViewById<View>(R.id.btnVehicles) != null }
         onView(withId(R.id.nav_mantenimiento)).perform(click())
         waitFor("search displayed") { it.findViewById<View>(R.id.etSearchMaintenance) != null }
         search("$prefix frenos")

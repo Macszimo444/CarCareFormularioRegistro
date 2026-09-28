@@ -3,6 +3,7 @@ package com.example.carcareformularioregistro
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.telephony.PhoneNumberFormattingTextWatcher
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,8 @@ import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.data.User
 import com.example.carcareformularioregistro.databinding.ActivityRegistroBinding
 import com.example.carcareformularioregistro.utils.LocalSession
+import com.example.carcareformularioregistro.utils.ProfileValidation
+import com.example.carcareformularioregistro.ui.GuidanceActivity
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -26,6 +29,7 @@ class RegistroActivity : AppCompatActivity() {
     private var existingUser: User? = null
     private var profileLoaded = false
     private var loading = false
+    private val editing by lazy { intent.getBooleanExtra(EXTRA_EDIT_PROFILE, false) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +49,19 @@ class RegistroActivity : AppCompatActivity() {
         binding.btnGuardar.setOnClickListener {
             if (profileLoaded) guardarUsuario() else loadProfile(savedInstanceState != null)
         }
-        binding.btnContinuarPerfil.setOnClickListener { openApplication() }
+        binding.btnContinuarPerfil.setOnClickListener { if (editing) finish() else openApplication() }
+        binding.etTelefono.addTextChangedListener(PhoneNumberFormattingTextWatcher("MX"))
+        binding.optionalProfileFields.isVisible = savedInstanceState?.getBoolean("optional_open") ?: false
+        binding.btnOptionalProfile.setOnClickListener {
+            binding.optionalProfileFields.isVisible = !binding.optionalProfileFields.isVisible
+        }
+        binding.btnPrivacy.setOnClickListener {
+            startActivity(Intent(this, GuidanceActivity::class.java).putExtra(GuidanceActivity.EXTRA_MODE, GuidanceActivity.MODE_PRIVACY))
+        }
+        if (editing) {
+            binding.tvRegistrationTitle.setText(R.string.profile_edit_title)
+            binding.btnContinuarPerfil.setText(R.string.profile_cancel_edit)
+        }
         loadProfile(savedInstanceState != null)
     }
 
@@ -57,7 +73,7 @@ class RegistroActivity : AppCompatActivity() {
             try {
                 existingUser = database.userDao().getPrimaryUser()
                 profileLoaded = true
-                if (existingUser != null && !LocalSession.isClosed(this@RegistroActivity)) {
+                if (!editing && existingUser != null && !LocalSession.isClosed(this@RegistroActivity)) {
                     openApplication()
                     return@launch
                 }
@@ -85,18 +101,29 @@ class RegistroActivity : AppCompatActivity() {
         val nombre = binding.etNombre.text?.toString()?.trim().orEmpty()
         val apellidos = binding.etApellidos.text?.toString()?.trim().orEmpty()
         val direccion = binding.etDireccion.text?.toString()?.trim().orEmpty()
-        val telefono = binding.etTelefono.text?.toString()?.trim().orEmpty()
+        val phoneInput = binding.etTelefono.text?.toString()?.trim().orEmpty()
         val fields = listOf(
             binding.tilNombre to nombre,
             binding.tilApellidos to apellidos,
             binding.tilDireccion to direccion,
-            binding.tilTelefono to telefono,
+            binding.tilTelefono to phoneInput,
         )
         fields.forEach { (layout, _) -> layout.error = null }
-        val missing = fields.filter { (_, value) -> value.isBlank() }
+        val missing = fields.take(2).filter { (_, value) -> value.isBlank() }
         if (missing.isNotEmpty()) {
             missing.forEach { (layout, _) -> layout.error = getString(R.string.campo_obligatorio) }
             missing.first().first.editText?.requestFocus()
+            return
+        }
+        var invalid = false
+        if (!ProfileValidation.name(nombre)) { binding.tilNombre.error = getString(R.string.profile_name_error); invalid = true }
+        if (!ProfileValidation.name(apellidos)) { binding.tilApellidos.error = getString(R.string.profile_name_error); invalid = true }
+        if (direccion.length > 250) { binding.tilDireccion.error = getString(R.string.profile_address_error); invalid = true }
+        val telefono = ProfileValidation.phone(phoneInput)
+        if (telefono == null) { binding.tilTelefono.error = getString(R.string.profile_phone_error); invalid = true }
+        if (invalid) {
+            if (telefono == null || direccion.length > 250) binding.optionalProfileFields.isVisible = true
+            fields.firstOrNull { it.first.error != null }?.first?.editText?.requestFocus()
             return
         }
         ocultarTeclado()
@@ -104,11 +131,11 @@ class RegistroActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val user = existingUser?.copy(
-                    nombre = nombre, apellidos = apellidos, direccion = direccion, telefono = telefono,
-                ) ?: User(nombre = nombre, apellidos = apellidos, direccion = direccion, telefono = telefono)
+                    nombre = nombre, apellidos = apellidos, direccion = direccion, telefono = telefono.orEmpty(),
+                ) ?: User(nombre = nombre, apellidos = apellidos, direccion = direccion, telefono = telefono.orEmpty())
                 if (existingUser == null) database.userDao().insertar(user)
                 else database.userDao().actualizar(user)
-                openApplication()
+                if (editing) finish() else openApplication()
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
@@ -127,6 +154,7 @@ class RegistroActivity : AppCompatActivity() {
         binding.btnGuardar.setText(when {
             busy -> R.string.guardando_usuario
             !profileLoaded -> R.string.reintentar_cargar_perfil
+            editing -> R.string.profile_save_changes
             existingUser != null -> R.string.actualizar_perfil_continuar
             else -> R.string.guardar_registro
         })
@@ -148,4 +176,11 @@ class RegistroActivity : AppCompatActivity() {
             view.clearFocus()
         }
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("optional_open", binding.optionalProfileFields.isVisible)
+        super.onSaveInstanceState(outState)
+    }
+
+    companion object { const val EXTRA_EDIT_PROFILE = "edit_profile" }
 }

@@ -1,0 +1,46 @@
+package com.example.carcareformularioregistro.ui
+
+/** Curated, bundled information: no download, remote AI or individualized service schedule. */
+object GuidanceContent {
+    data class Source(val id: String, val title: String, val url: String)
+    data class Section(val title: String, val body: String, val sourceIds: List<String> = emptyList())
+
+    val sources = listOf(
+        Source("schedule", "Honda · Cómo se determina el mantenimiento (inglés)", "https://www.hondainfocenter.com/Shared-Technologies/Comfort-and-Convenience/Maintenance-Minder-System-All/"),
+        Source("service", "Honda · Ejemplo de servicios y condiciones de uso (Accord 2024, inglés)", "https://techinfo.honda.com/rjanisis/pubs/OM/AH/A30A2424IOM/enu/details/131236047-12935.html"),
+        Source("tires", "NHTSA · Cuidado y seguridad de las llantas (inglés)", "https://www.nhtsa.gov/vehicle-safety/tires"),
+        Source("warnings", "Ford · Significado de los testigos (manual de referencia, inglés)", "https://www.fordservicecontent.com/Ford_Content/vdirsnet/OwnerManual/Home/Content?ProcUid=G1545681&Uid=G1532426&buildtype=web&countryCode=USA&div=f&languageCode=en&moidRef=G539493&userMarket=GBR&vFilteringEnabled=False&variantid=2673"),
+        Source("engine", "Honda · Testigo del motor (HR-V 2025, inglés)", "https://techinfo.honda.com/rjanisis/pubs/om/ah/a3v02525iom/enu/details/131237047-15984.html"),
+        Source("heat", "Honda · Sobrecalentamiento (Pilot 2026, inglés)", "https://techinfo.honda.com/rjanisis/pubs/OM/AH/AT902626IOM/enu/details/131293047-15886.html"),
+        Source("fire", "USFA · Seguridad ante incendio de un vehículo (inglés)", "https://www.usfa.fema.gov/prevention/vehicle-fires/")
+    )
+
+    val guide = listOf(
+        Section("¿Cada cuánto debo hacer un servicio?", "Busca el plan de mantenimiento del fabricante para tu marca, modelo, año y motorización. Puede indicar tiempo, kilometraje o un aviso del propio vehículo. Los trayectos cortos, el polvo, la carga y otras condiciones pueden cambiar el plan. CarCare no calcula ese intervalo ni lee sensores: registra lo que confirmes en el manual o con un profesional.", listOf("schedule", "service")),
+        Section("Aceite y filtro", "Ayudan al funcionamiento del motor de combustión. Registra el servicio y la especificación utilizada en las notas. Para elegir el producto y el siguiente cambio, consulta el manual y el indicador de mantenimiento, si existe; no hay un kilometraje único para todos los motores. Un testigo de presión de aceite no es un simple recordatorio: necesita atención inmediata.", listOf("service", "warnings")),
+        Section("Frenos", "Las revisiones permiten evaluar el sistema que reduce la velocidad y detiene el vehículo. El desgaste depende del uso; una fecha por sí sola no dice cuándo cambiar piezas. Sigue las inspecciones y el cambio de líquido indicados en tu manual. Un cambio en el frenado requiere consulta sin esperar al próximo servicio.", listOf("service", "warnings")),
+        Section("Llantas", "Su estado influye en el agarre y el control. Como revisión preventiva, NHTSA recomienda comprobar presión, desgaste y daños al menos una vez al mes. Mide la presión en frío: después de al menos tres horas sin conducir. Usa la presión indicada en la etiqueta del vehículo o su manual e incluye la refacción si tiene una.\n\nEsta frecuencia corresponde a una revisión. La rotación y el reemplazo dependen del manual y del estado de las llantas, sin un kilometraje universal. Pide revisión profesional si hay daños, pérdida de presión o vibraciones.", listOf("tires")),
+        Section("Refrigerante, filtros y otros servicios", "No todos los vehículos llevan los mismos componentes ni usan los mismos líquidos. Anota la inspección o sustitución que se realizó. Para refrigerante, filtros, bujías, bandas o transmisión, consulta el plan de tu versión y sus condiciones de uso. Si un trabajo no aplica a tu vehículo, no hace falta programarlo por aparecer en una lista genérica.", listOf("service")),
+        Section("Batería y sistema eléctrico", "Una revisión profesional puede evaluar el arranque y la alimentación eléctrica. La edad por sí sola no confirma una falla. Registra las observaciones o el resultado de la revisión; no programes un reemplazo basándote únicamente en que el coche no encendió."),
+        Section("Cómo llevarlo a CarCare", "Después de confirmar el plan, guarda el servicio con su fecha y kilometraje. Si conoces la próxima fecha o lectura del odómetro, úsala para planear la siguiente revisión. Actualiza manualmente el kilometraje del vehículo para que la información siga siendo útil. La app no sabe cuánto conduces ni sustituye el manual.")
+    )
+
+    val help = listOf(
+        Section("Tres kilometrajes distintos", "Actual: lo que marca hoy el odómetro del vehículo.\n\nDel servicio: lo que marcaba cuando se hizo el trabajo; puede ser menor si registras algo del pasado.\n\nPróximo: la lectura total prevista para la siguiente revisión, no los kilómetros restantes. Ejemplo: servicio a 85,000 km y siguiente a 95,000 km; entre ambos hay 10,000 km. Es solo un ejemplo de captura, no una recomendación mecánica."),
+        Section("Mantenimiento e historial", "Mantenimiento reúne tus servicios y sus estados. Próximos muestra los marcados como Próximo. Los que marcas Pendiente se consultan en Todos. Cambia a Realizado cuando el trabajo se haya efectuado: aparecerá también en el Historial. Buscar y filtrar no borra registros."),
+        Section("Notas y taller", "Las notas guardan detalles útiles: piezas cambiadas, tipo de producto u observaciones del taller. Ejemplo: «Se cambió también el filtro; revisar el ruido en la siguiente visita». El taller identifica quién realizó el servicio. No incluyas datos personales innecesarios."),
+        Section("Recordatorios", "Sirven para acordarte de una tarea futura. Un aviso no confirma que el trabajo se haya realizado: actualiza el mantenimiento cuando corresponda. Los avisos por fecha necesitan permiso de notificaciones y pueden retrasarse según los ajustes del teléfono. El kilometraje se actualiza manualmente; la app no está conectada al coche."),
+        Section("Vehículo seleccionado y principal", "Seleccionar un vehículo muestra sus propios servicios, gastos y recordatorios. El principal es tu referencia preferida; cambiar de vehículo no mezcla ni borra sus registros. Antes de agregar información, comprueba para qué vehículo la estás guardando."),
+        Section("Qué puede hacer el asistente", "Te hace preguntas preparadas y orienta sobre el siguiente paso. Funciona sin internet y no conversa con un mecánico ni con una IA. No inspecciona el vehículo, no identifica piezas dañadas y no confirma que sea seguro conducir.")
+    )
+
+    val privacy = listOf(
+        Section("Información de privacidad", "Esta sección explica cómo funciona esta versión local de CarCare. No es una cuenta en línea ni un servicio de diagnóstico. Revisa esta información antes de ingresar datos de otras personas."),
+        Section("Qué guardas y para qué", "El perfil, los vehículos, los mantenimientos, los gastos y los recordatorios se guardan en el dispositivo para organizar tu información. Los datos de contacto que decidas añadir son opcionales y no se usan para enviarte mensajes. Las placas sirven solo para identificar el vehículo si eliges registrarlas."),
+        Section("Dónde permanece la información", "Esta versión no envía tus registros a un servidor de CarCare, no incluye publicidad, analítica ni un proveedor de IA. El acceso es a un perfil local sin contraseña. Protege el acceso a tu teléfono: cerrar el perfil no cifra ni elimina sus datos."),
+        Section("Asistente y enlaces", "Las respuestas del asistente se usan para el recorrido actual y no forman un historial permanente de consultas. Android puede conservar temporalmente el estado de la pantalla al recrearla. Al pulsar una fuente se abre tu navegador y ese sitio aplica sus propias políticas; CarCare no adjunta tus registros al enlace."),
+        Section("Permisos y avisos", "El permiso de notificaciones permite mostrar recordatorios que tú programas. Puedes desactivarlo en los ajustes de Android; los registros permanecen guardados. Un aviso puede ser visible en la pantalla de bloqueo según la configuración del teléfono."),
+        Section("Tu control sobre los datos", "Puedes editar o eliminar registros desde sus secciones. En Perfil puedes eliminar todos los datos locales. Desinstalar o borrar el almacenamiento de la app también elimina su información local. Esta versión no ofrece una copia en la nube ni recuperación de registros borrados."),
+        Section("Sobre esta información", "Información actualizada el 27 de septiembre de 2026 para esta versión local de CarCare. Si cambian sus funciones o el tratamiento de tus datos, esta información deberá actualizarse. Para entender los campos y las funciones actuales, consulta Entiende CarCare desde Perfil.")
+    )
+}

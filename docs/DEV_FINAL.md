@@ -1,3 +1,5 @@
+> Documento de la integración inicial. Para el comportamiento actual de v3 consulta [Mejoras de dev-final](MEJORAS_DEV_FINAL.md).
+
 # CarCare integrado — dev-final
 
 ## Resultado y alcance

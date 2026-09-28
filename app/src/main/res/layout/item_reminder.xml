@@ -1,129 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     style="@style/Widget.CarCare.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="top"
-            android:orientation="horizontal">
+            android:textColor="@color/carcare_text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardIcon"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                app:cardBackgroundColor="@color/carcare_soft_blue"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="0dp">
+        <TextView
+            android:id="@+id/tvPriorityBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_maintenance_status"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/carcare_text_primary"
+            android:textSize="12sp" />
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="Recordatorio"
-                    android:src="@drawable/ic_recordatorio"
-                    app:tint="@color/carcare_electric_blue" />
-            </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/carcare_text_secondary"
+            android:textSize="14sp" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+        <TextView
+            android:id="@+id/tvDueDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/carcare_text_primary"
+            android:textSize="14sp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+        <TextView
+            android:id="@+id/tvProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/carcare_text_secondary"
+            android:textSize="13sp" />
 
-                    <TextView
-                        android:id="@+id/tvTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/carcare_text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        tools:text="Cambio de Filtro de Aire" />
+        <TextView
+            android:id="@+id/tvLinked"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/reminder_linked_badge"
+            android:textColor="@color/carcare_electric_blue"
+            android:textSize="12sp" />
 
-                    <TextView
-                        android:id="@+id/tvPriorityBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:background="@drawable/ic_check"
-                        android:paddingHorizontal="6dp"
-                        android:paddingVertical="2dp"
-                        android:textColor="@color/white"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:text="Alta" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvDescription"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textColor="@color/carcare_text_secondary"
-                    android:textSize="12sp"
-                    tools:text="Reemplazar filtro de motor para mejor rendimiento" />
-
-                <TextView
-                    android:id="@+id/tvDueDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="@color/carcare_text_muted"
-                    android:textSize="11sp"
-                    tools:text="Vence: 2026-10-15 • 87,000 km" />
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchEnable"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/reminder_enable_action"
+            android:textColor="@color/carcare_text_secondary"
+            app:useMaterialThemeColors="true" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEnable"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditReminder"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:minHeight="48dp"
-                android:paddingEnd="12dp"
-                android:text="@string/reminder_enable_action"
-                android:textColor="@color/carcare_text_secondary"
-                android:textSize="12sp"
-                android:checked="true"
-                app:useMaterialThemeColors="true" />
+                android:text="@string/reminder_edit_action"
+                android:textColor="@color/carcare_electric_blue"
+                android:textAllCaps="false" />
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteReminder"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Eliminar recordatorio"
-                android:padding="12dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_close"
-                app:tint="@color/carcare_text_secondary" />
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/reminder_delete_action"
+                android:textColor="@color/carcare_danger"
+                android:textAllCaps="false" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

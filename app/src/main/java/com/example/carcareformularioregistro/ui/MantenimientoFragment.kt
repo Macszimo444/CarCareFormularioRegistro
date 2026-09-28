@@ -85,8 +85,9 @@ class MantenimientoFragment : Fragment() {
         binding.fabAddMaintenance.setOnClickListener {
             openActivity(Intent(requireContext(), AddMaintenanceActivity::class.java))
         }
-        binding.btnEmptyAdd.setOnClickListener {
-            openActivity(Intent(requireContext(), AddMaintenanceActivity::class.java))
+        binding.btnMaintenanceHelp.setOnClickListener {
+            openActivity(Intent(requireContext(), GuidanceActivity::class.java)
+                .putExtra(GuidanceActivity.EXTRA_MODE, GuidanceActivity.MODE_HELP))
         }
         binding.btnViewHistory.setOnClickListener {
             openActivity(Intent(requireContext(), HistorialActivity::class.java))
@@ -100,9 +101,11 @@ class MantenimientoFragment : Fragment() {
 
     private fun render(state: MaintenanceUiState) {
         adapter.updateData(state.items)
-        binding.tvMonitoredSubtitle.text = resources.getQuantityString(
+        val count = resources.getQuantityString(
             R.plurals.maintenance_monitored, state.totalCount, state.totalCount
         )
+        binding.tvMonitoredSubtitle.text = if (state.vehicleName.isBlank()) getString(R.string.choose_vehicle_context)
+            else getString(R.string.selected_vehicle_context, state.vehicleName, count)
         binding.progressLoading.isVisible = state.loading
         val empty = !state.loading && state.items.isEmpty()
         binding.containerEmpty.isVisible = empty
@@ -119,7 +122,6 @@ class MantenimientoFragment : Fragment() {
             filtered -> R.string.maintenance_try_another_tab
             else -> R.string.maintenance_add_first
         })
-        binding.btnEmptyAdd.isVisible = !filtered && !state.loadFailed
     }
 
     private fun confirmDeleteMaintenance(maintenance: Maintenance) {

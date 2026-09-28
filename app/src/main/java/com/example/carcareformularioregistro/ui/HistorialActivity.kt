@@ -11,7 +11,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carcareformularioregistro.adapter.HistoryAdapter
 import com.example.carcareformularioregistro.R
-import com.example.carcareformularioregistro.data.AppDatabase
+import com.example.carcareformularioregistro.data.MaintenanceRepository
+import com.example.carcareformularioregistro.data.Maintenance
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.catch
+import com.google.android.material.snackbar.Snackbar
 import com.example.carcareformularioregistro.databinding.ActivityHistorialBinding
 import com.example.carcareformularioregistro.utils.StatisticsCalculator
 import kotlinx.coroutines.flow.collectLatest
@@ -23,7 +28,6 @@ class HistorialActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHistorialBinding
     private lateinit var adapter: HistoryAdapter
-    private val db by lazy { AppDatabase.getInstance(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +68,13 @@ class HistorialActivity : AppCompatActivity() {
 
     private fun observeData() {
         lifecycleScope.launch {
-            db.maintenanceDao().getCompletedMaintenancesFlow().collectLatest { list ->
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            MaintenanceRepository(applicationContext).observeMaintenances()
+                .catch { Snackbar.make(binding.root, R.string.core_load_error, Snackbar.LENGTH_LONG).show() }
+                .collectLatest { records ->
+                val list = records.items.filter { it.status == Maintenance.STATUS_REALIZADO }
+                binding.tvHistoryContext.text = listOfNotNull(records.vehicle?.displayName,
+                    getString(R.string.history_context_help)).joinToString("\n")
                 adapter.updateData(list)
                 val stats = StatisticsCalculator.history(list)
                 binding.tvTotalServices.text = resources.getQuantityString(
@@ -80,6 +90,7 @@ class HistorialActivity : AppCompatActivity() {
                     binding.containerEmptyHistorial.visibility = View.GONE
                     binding.rvHistory.visibility = View.VISIBLE
                 }
+            }
             }
         }
     }

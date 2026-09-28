@@ -1,32 +1,58 @@
 package com.example.carcareformularioregistro.ui
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.view.View
+import android.provider.Settings
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.carcareformularioregistro.R
 import com.example.carcareformularioregistro.adapter.ReminderAdapter
 import com.example.carcareformularioregistro.data.AppDatabase
 import com.example.carcareformularioregistro.data.Reminder
+import com.example.carcareformularioregistro.data.VehicleRepository
 import com.example.carcareformularioregistro.databinding.ActivityRecordatoriosBinding
+import com.example.carcareformularioregistro.databinding.DialogReminderSettingsBinding
 import com.example.carcareformularioregistro.utils.NotificationHelper
+import com.example.carcareformularioregistro.utils.ReminderSettings
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class RecordatoriosActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityRecordatoriosBinding
     private lateinit var adapter: ReminderAdapter
     private val db by lazy { AppDatabase.getInstance(applicationContext) }
+    private val vehicles by lazy { VehicleRepository.getInstance(applicationContext) }
+    private val settings by lazy { ReminderSettings(applicationContext) }
     private var reminders: List<Reminder> = emptyList()
+    private var mileage = 0
+    private val permissionRequest = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) Snackbar.make(binding.root, R.string.reminders_permission_hint, Snackbar.LENGTH_LONG)
+            .setAction("Ajustes") { openSystemNotificationSettings() }.show()
+        updatePermissionHint()
+        reschedule()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +63,6 @@ class RecordatoriosActivity : AppCompatActivity() {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
         }
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
@@ -45,31 +70,101 @@ class RecordatoriosActivity : AppCompatActivity() {
         }
         ViewCompat.requestApplyInsets(binding.root)
         setupRecyclerView()
-        setupListeners()
+        binding.btnBack.setOnClickListener { finish() }
+        binding.btnAddReminder.setOnClickListener {
+            if (supportFragmentManager.findFragmentByTag("AddReminderDialog") == null)
+                AddReminderDialogFragment().show(supportFragmentManager, "AddReminderDialog")
+        }
+        binding.btnNotificationSettings.setOnClickListener { showSettings() }
+        binding.tvPermissionHint.setOnClickListener { requestNotificationAccess() }
+        lifecycleScope.launch {
+            val fromNotification = intent.getIntExtra("vehicle_id", 0)
+            if (savedInstanceState == null && fromNotification > 0 && db.vehicleDao().getById(fromNotification) != null)
+                vehicles.selectVehicle(fromNotification)
+            observeData()
+        }
+    }
 
-        observeData()
+    override fun onResume() {
+        super.onResume()
+        updatePermissionHint()
+        reschedule()
+    }
+
+    private fun updatePermissionHint() {
+        binding.tvPermissionHint.isVisible = settings.enabled && !NotificationHelper.notificationsAllowed(this)
+    }
+
+    private fun requestNotificationAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            permissionRequest.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else openSystemNotificationSettings()
+    }
+
+    private fun openSystemNotificationSettings() {
+        startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+    }
+
+    private fun reschedule() {
+        lifecycleScope.launch {
+            try { NotificationHelper.rescheduleAll(applicationContext) }
+            catch (error: CancellationException) { throw error }
+            catch (_: Exception) { Snackbar.make(binding.root, R.string.reminder_alarm_error, Snackbar.LENGTH_LONG).show() }
+        }
+    }
+
+    private fun showSettings() {
+        val panel = DialogReminderSettingsBinding.inflate(layoutInflater)
+        panel.switchNotifications.isChecked = settings.enabled
+        panel.btnNotificationTime.text = getString(R.string.reminders_time_button, settings.hour)
+        panel.btnNotificationTime.isEnabled = settings.enabled
+        panel.switchNotifications.setOnCheckedChangeListener { _, checked ->
+            settings.enabled = checked
+            panel.btnNotificationTime.isEnabled = checked
+            if (checked && !NotificationHelper.notificationsAllowed(this)) requestNotificationAccess()
+            updatePermissionHint()
+            reschedule()
+        }
+        panel.btnNotificationTime.setOnClickListener {
+            val hours = (0..23).map { String.format(Locale.getDefault(), "%02d:00", it) }.toTypedArray()
+            AlertDialog.Builder(this).setTitle(R.string.reminders_time_title)
+                .setSingleChoiceItems(hours, settings.hour) { dialog, selected ->
+                    settings.hour = selected
+                    panel.btnNotificationTime.text = getString(R.string.reminders_time_button, selected)
+                    reschedule()
+                    dialog.dismiss()
+                }.setNegativeButton(R.string.cancelar, null).show()
+        }
+        panel.btnSystemNotifications.setOnClickListener {
+            openSystemNotificationSettings()
+        }
+        AlertDialog.Builder(this).setTitle("Configurar avisos").setView(panel.root)
+            .setPositiveButton("Listo", null).show()
     }
 
     private fun setupRecyclerView() {
         adapter = ReminderAdapter(
-            onToggle = { reminder, isEnabled ->
+            onToggle = { reminder, enabled ->
                 lifecycleScope.launch {
                     try {
-                        val updated = reminder.copy(enabled = isEnabled)
+                        // Re-read to preserve edits if a notification or another screen changed the row.
+                        val current = db.reminderDao().getById(reminder.id) ?: return@launch
+                        val updated = current.copy(enabled = enabled)
                         db.reminderDao().update(updated)
-                        if (!NotificationHelper.scheduleReminder(applicationContext, updated)) {
+                        if (!NotificationHelper.scheduleReminder(applicationContext, updated))
                             Snackbar.make(binding.root, R.string.reminder_alarm_error, Snackbar.LENGTH_LONG).show()
-                        }
-                    } catch (error: CancellationException) {
-                        throw error
-                    } catch (_: Exception) {
-                        adapter.updateData(reminders)
+                    } catch (error: CancellationException) { throw error }
+                    catch (_: Exception) {
+                        adapter.updateData(reminders, mileage)
                         Snackbar.make(binding.root, R.string.form_save_error, Snackbar.LENGTH_LONG).show()
                     }
                 }
             },
-            onDelete = { reminder ->
-                confirmDelete(reminder)
+            onDelete = { confirmDelete(it) },
+            onEdit = { reminder ->
+                if (supportFragmentManager.findFragmentByTag("AddReminderDialog") == null)
+                    AddReminderDialogFragment.edit(reminder.id).show(supportFragmentManager, "AddReminderDialog")
             }
         )
         binding.rvReminders.layoutManager = LinearLayoutManager(this)
@@ -77,51 +172,40 @@ class RecordatoriosActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete(reminder: Reminder) {
-        AlertDialog.Builder(this)
-            .setTitle("Eliminar Recordatorio")
-            .setMessage("¿Deseas eliminar '${reminder.title}'?")
-            .setPositiveButton("Eliminar") { _, _ ->
+        AlertDialog.Builder(this).setTitle(R.string.reminder_delete_title)
+            .setMessage(getString(R.string.reminder_delete_message, reminder.title))
+            .setPositiveButton(R.string.reminder_delete_action) { _, _ ->
                 lifecycleScope.launch {
                     try {
                         db.reminderDao().delete(reminder)
                         NotificationHelper.cancelReminderAlarm(applicationContext, reminder.id)
-                    } catch (error: CancellationException) {
-                        throw error
-                    } catch (_: Exception) {
-                        Snackbar.make(binding.root, R.string.form_delete_error, Snackbar.LENGTH_LONG).show()
-                    }
+                        settings.forget(reminder.id)
+                    } catch (error: CancellationException) { throw error }
+                    catch (_: Exception) { Snackbar.make(binding.root, R.string.form_delete_error, Snackbar.LENGTH_LONG).show() }
                 }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+            }.setNegativeButton(R.string.cancelar, null).show()
     }
 
-    private fun setupListeners() {
-        binding.btnBack.setOnClickListener {
-            finish()
-        }
-
-        val openAddReminder = {
-            AddReminderDialogFragment().show(supportFragmentManager, "AddReminderDialog")
-        }
-
-        binding.btnAddReminder.setOnClickListener { openAddReminder() }
-        binding.fabAddReminder.setOnClickListener { openAddReminder() }
-    }
-
-    private fun observeData() {
-        lifecycleScope.launch {
-            db.reminderDao().getAllRemindersFlow().collectLatest { list ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun observeData() {
+        repeatOnLifecycle(Lifecycle.State.STARTED) {
+            vehicles.selectedVehicleFlow.flatMapLatest { vehicle ->
+                mileage = vehicle?.mileage ?: 0
+                binding.tvVehicleContext.text = vehicle?.let { getString(R.string.service_vehicle_context, it.displayName) }
+                    ?: getString(R.string.service_vehicle_missing)
+                binding.btnAddReminder.isEnabled = vehicle != null
+                (vehicle?.let { db.reminderDao().getForVehicleFlow(it.id) } ?: flowOf(emptyList()))
+                    .onStart { emit(emptyList()) }
+            }.catch { error ->
+                if (error is CancellationException) throw error
+                binding.btnAddReminder.isEnabled = false
+                Snackbar.make(binding.root, R.string.form_load_error, Snackbar.LENGTH_LONG).show()
+                emit(emptyList())
+            }.collectLatest { list ->
                 reminders = list
-                adapter.updateData(list)
-
-                if (list.isEmpty()) {
-                    binding.containerEmptyRecordatorios.visibility = View.VISIBLE
-                    binding.rvReminders.visibility = View.GONE
-                } else {
-                    binding.containerEmptyRecordatorios.visibility = View.GONE
-                    binding.rvReminders.visibility = View.VISIBLE
-                }
+                adapter.updateData(list, mileage)
+                binding.containerEmptyRecordatorios.isVisible = list.isEmpty()
+                binding.rvReminders.isVisible = list.isNotEmpty()
             }
         }
     }

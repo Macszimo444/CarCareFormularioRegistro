@@ -28,4 +28,22 @@ interface ReminderDao {
 
     @Query("SELECT COUNT(*) FROM reminders WHERE enabled = 1")
     fun getActiveRemindersCountFlow(): Flow<Int>
+
+    @Query("SELECT * FROM reminders WHERE vehicleId = :vehicleId ORDER BY dueDate ASC, id DESC")
+    fun getForVehicleFlow(vehicleId: Int): Flow<List<Reminder>>
+
+    @Query("SELECT * FROM reminders ORDER BY dueDate ASC")
+    suspend fun getAllReminders(): List<Reminder>
+
+    @Query("SELECT * FROM reminders WHERE maintenanceId = :id LIMIT 1")
+    suspend fun getForMaintenance(id: Int): Reminder?
+
+    @Query("SELECT * FROM reminders WHERE vehicleId = :vehicleId")
+    suspend fun getForVehicle(vehicleId: Int): List<Reminder>
+
+    @Query("SELECT COUNT(*) FROM reminders WHERE vehicleId = :vehicleId")
+    suspend fun countForVehicle(vehicleId: Int): Int
+
+    @Query("DELETE FROM reminders WHERE vehicleId = :vehicleId")
+    suspend fun deleteForVehicle(vehicleId: Int)
 }

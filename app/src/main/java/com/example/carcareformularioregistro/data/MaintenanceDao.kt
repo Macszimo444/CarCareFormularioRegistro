@@ -43,4 +43,13 @@ interface MaintenanceDao {
 
     @Query("SELECT * FROM maintenances WHERE id = :id LIMIT 1")
     suspend fun getById(id: Int): Maintenance?
+
+    @Query("SELECT * FROM maintenances WHERE vehicleId = :vehicleId ORDER BY date DESC, id DESC")
+    fun getForVehicleFlow(vehicleId: Int): Flow<List<Maintenance>>
+
+    @Query("SELECT COUNT(*) FROM maintenances WHERE vehicleId = :vehicleId")
+    suspend fun countForVehicle(vehicleId: Int): Int
+
+    @Query("DELETE FROM maintenances WHERE vehicleId = :vehicleId")
+    suspend fun deleteForVehicle(vehicleId: Int)
 }

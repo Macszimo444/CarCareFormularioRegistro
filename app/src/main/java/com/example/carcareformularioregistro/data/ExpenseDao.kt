@@ -25,6 +25,21 @@ interface ExpenseDao {
 
     @Query("SELECT category, SUM(amount) as total FROM expenses GROUP BY category")
     fun getExpensesByCategoryFlow(): Flow<List<CategoryTotal>>
+
+    @Query("SELECT * FROM expenses WHERE vehicleId = :vehicleId ORDER BY date DESC, id DESC")
+    fun getForVehicleFlow(vehicleId: Int): Flow<List<Expense>>
+
+    @Query("SELECT * FROM expenses WHERE id = :id")
+    suspend fun getById(id: Int): Expense?
+
+    @Query("DELETE FROM expenses WHERE id = :id")
+    suspend fun deleteById(id: Int)
+
+    @Query("SELECT COUNT(*) FROM expenses WHERE vehicleId = :vehicleId")
+    suspend fun countForVehicle(vehicleId: Int): Int
+
+    @Query("DELETE FROM expenses WHERE vehicleId = :vehicleId")
+    suspend fun deleteForVehicle(vehicleId: Int)
 }
 
 data class CategoryTotal(

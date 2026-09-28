@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="guidance_close">Volver a CarCare</string>
+    <string name="guidance_assistant_title">Asistente guiado</string>
+    <string name="guidance_assistant_intro">Preguntas preparadas, sin internet. Orientación general: no diagnostica ni sustituye una revisión mecánica.</string>
+    <string name="guidance_guide_title">Guía de cuidado</string>
+    <string name="guidance_guide_intro">Entiende tus servicios. El manual de tu versión determina el plan adecuado.</string>
+    <string name="guidance_help_title">Entiende CarCare</string>
+    <string name="guidance_help_intro">Qué significa cada dato y cómo aprovechar tus registros.</string>
+    <string name="guidance_privacy_title">Privacidad y datos</string>
+    <string name="guidance_privacy_intro">Información sobre esta versión local de CarCare.</string>
+    <string name="guidance_previous">Cambiar respuesta anterior</string>
+    <string name="guidance_restart">Comenzar otra consulta</string>
+    <string name="guidance_answered">Tu respuesta: %1$s</string>
+    <string name="guidance_sources_title">Fuentes de orientación</string>
+    <string name="guidance_sources_body">Referencias consultadas el 27 de septiembre de 2026. Son ejemplos de fabricantes y organismos de seguridad; no son el manual de tu vehículo. Los enlaces abren el navegador solo al pulsarlos y necesitan conexión.</string>
+    <string name="guidance_result_limit">Esta orientación se basa en tus respuestas. No confirma la causa ni garantiza que sea seguro conducir. Si aparecen señales nuevas, detén el uso y consulta asistencia.</string>
+    <string name="guidance_source_unavailable">No se encontró una aplicación para abrir este enlace.</string>
+    <string name="guidance_external_source">Abrir fuente: %1$s</string>
+    <string name="guidance_review_label">Revisión profesional</string>
+    <string name="guidance_stop_label">Atención inmediata</string>
+    <string name="guidance_expand">Ver explicación</string>
+    <string name="guidance_collapse">Ocultar explicación</string>
+    <string name="guidance_expand_named">Ver explicación: %1$s</string>
+    <string name="guidance_collapse_named">Ocultar explicación: %1$s</string>
+</resources>

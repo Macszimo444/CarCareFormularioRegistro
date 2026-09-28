@@ -1,16 +1,11 @@
 package com.example.carcareformularioregistro
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -45,9 +40,10 @@ class MainActivity : AppCompatActivity() {
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime())
             view.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard.bottom))
-            // The root already reserves the system bars; prevent Material navigation from adding them twice.
+            // This root owns system/IME spacing. Material's legacy inset handling otherwise
+            // adds the keyboard height again to the bottom navigation and collapses the list.
             WindowInsetsCompat.Builder(insets)
-                .setInsets(WindowInsetsCompat.Type.systemBars(), Insets.NONE)
+                .setInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime(), Insets.NONE)
                 .build()
         }
         enterWithLocalProfile(savedInstanceState == null)
@@ -69,7 +65,8 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigation.isEnabled = true
                 if (showHome) replaceFragment(InicioFragment())
                 NotificationHelper.createNotificationChannel(this@MainActivity)
-                requestNotificationPermission()
+                // Permission is explained/requested in Recordatorios, when the user enables alerts.
+                launch { runCatching { NotificationHelper.rescheduleAll(applicationContext) } }
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
@@ -110,12 +107,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
-        }
-    }
 }

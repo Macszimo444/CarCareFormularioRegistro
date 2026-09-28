@@ -5,143 +5,88 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.example.carcareformularioregistro.data.AppDatabase
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.carcareformularioregistro.R
+import com.example.carcareformularioregistro.data.*
 import com.example.carcareformularioregistro.databinding.FragmentInicioBinding
 import com.example.carcareformularioregistro.utils.StatisticsCalculator
-import kotlinx.coroutines.flow.collectLatest
+import com.example.carcareformularioregistro.utils.UpcomingReview
+import com.example.carcareformularioregistro.utils.UpcomingReviews
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
 class InicioFragment : Fragment() {
-
     private var _binding: FragmentInicioBinding? = null
     private val binding get() = _binding!!
+    private val db by lazy { AppDatabase.getInstance(requireContext()) }
+    private var vehicleId: Int? = null
+    private var next: UpcomingReview? = null
+    private data class Snapshot(val vehicle: Vehicle?, val maintenance: List<Maintenance> = emptyList(),
+        val expenses: List<Expense> = emptyList(), val reminders: List<Reminder> = emptyList())
 
-    private var nextMaintenanceId: Int? = null
-    private val db by lazy { AppDatabase.getInstance(requireContext().applicationContext) }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentInicioBinding.inflate(inflater, container, false)
         return binding.root
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        setupListeners()
-        observeData()
-    }
-
-    private fun setupListeners() {
-        binding.cardVehicle.setOnClickListener {
-            EditVehicleDialogFragment().show(parentFragmentManager, "EditVehicleDialog")
-        }
-
-        binding.btnNotifications.setOnClickListener {
-            startActivity(Intent(requireContext(), RecordatoriosActivity::class.java))
-        }
-
-        binding.btnViewAllReminders.setOnClickListener {
-            startActivity(Intent(requireContext(), RecordatoriosActivity::class.java))
-        }
-
-        binding.btnQuickAddMaintenance.setOnClickListener {
-            startActivity(Intent(requireContext(), AddMaintenanceActivity::class.java))
-        }
-
-        binding.btnQuickAddExpense.setOnClickListener {
-            AddExpenseDialogFragment().show(parentFragmentManager, "AddExpenseDialog")
-        }
-
-        binding.btnQuickAddReminder.setOnClickListener {
-            AddReminderDialogFragment().show(parentFragmentManager, "AddReminderDialog")
-        }
-
+        binding.btnVehicles.setOnClickListener { startActivity(Intent(requireContext(), VehiclesActivity::class.java)) }
+        binding.btnMileage.setOnClickListener { vehicleId?.let {
+            MileageDialogFragment.newInstance(it).show(parentFragmentManager, "MileageDialog")
+        } }
+        binding.btnReminders.setOnClickListener { openReminders() }
+        binding.btnAssistant.setOnClickListener { guidance(GuidanceActivity.MODE_ASSISTANT) }
+        binding.btnGuide.setOnClickListener { guidance(GuidanceActivity.MODE_GUIDE) }
         binding.btnViewServiceDetails.setOnClickListener {
-            nextMaintenanceId?.let { id ->
-                startActivity(Intent(requireContext(), AddMaintenanceActivity::class.java).apply {
-                    putExtra("maintenance_id", id)
-                })
+            next?.maintenanceId?.let {
+                startActivity(Intent(requireContext(), AddMaintenanceActivity::class.java).putExtra("maintenance_id", it))
+            } ?: openReminders()
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                VehicleRepository.getInstance(requireContext()).selectedVehicleFlow.flatMapLatest { vehicle ->
+                    if (vehicle == null) flowOf(Snapshot(null)) else combine(
+                        db.maintenanceDao().getForVehicleFlow(vehicle.id), db.expenseDao().getForVehicleFlow(vehicle.id),
+                        db.reminderDao().getForVehicleFlow(vehicle.id)
+                    ) { maintenance, expenses, reminders -> Snapshot(vehicle, maintenance, expenses, reminders) }
+                        .onStart { emit(Snapshot(vehicle)) }
+                }.catch { Snackbar.make(binding.root, R.string.core_load_error, Snackbar.LENGTH_LONG).show() }
+                    .collect(::render)
             }
         }
     }
 
-    private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            db.vehicleDao().getPrimaryVehicleFlow().collectLatest { vehicle ->
-                if (vehicle != null) {
-                    binding.tvVehicleName.text = vehicle.name
-                    binding.tvVehicleDetails.text =
-                        String.format("%,d km • Placas: %s", vehicle.mileage, vehicle.plates)
-                } else {
-                    binding.tvVehicleName.text = "Agregar Vehículo"
-                    binding.tvVehicleDetails.text = "Toca aquí para registrar tu auto"
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            db.maintenanceDao().getNextMaintenanceFlow().collectLatest { nextService ->
-                nextMaintenanceId = nextService?.id
-                binding.btnViewServiceDetails.isEnabled = nextService != null
-                if (nextService != null) {
-                    binding.tvNextServiceTitle.text = nextService.type
-                    binding.tvNextServiceDate.text = "Fecha recomendada: ${nextService.nextDate}"
-                    binding.tvNextServiceRemaining.text =
-                        "Próximo a los ${nextService.nextMileage} km (${nextService.workshop})"
-                    binding.progressNextService.progress = 65
-                    binding.tvStatNextServiceDays.text = "Pendiente"
-                } else {
-                    binding.tvNextServiceTitle.text = "Sin mantenimientos pendientes"
-                    binding.tvNextServiceRemaining.text = "Tu vehículo se encuentra al día"
-                    binding.tvNextServiceDate.text = "No hay fechas requeridas"
-                    binding.progressNextService.progress = 100
-                    binding.tvStatNextServiceDays.text = "Al día"
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            db.reminderDao().getAllRemindersFlow().collectLatest { reminders ->
-                val active = reminders.filter { it.enabled }
-                binding.vNotificationBadge.visibility =
-                    if (active.isNotEmpty()) View.VISIBLE else View.GONE
-
-                if (active.isNotEmpty()) {
-                    binding.tvRemindersSummaryTitle.text = "${active.size} recordatorios activos"
-                    val first = active.first()
-                    binding.tvLatestReminderText.text = "• ${first.title} (Vence: ${first.dueDate})"
-                } else {
-                    binding.tvRemindersSummaryTitle.text = "Sin recordatorios pendientes"
-                    binding.tvLatestReminderText.text = "Toca '+' para agregar tu primer aviso"
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            db.maintenanceDao().getCompletedCountFlow().collectLatest { count ->
-                binding.tvStatMaintenancesCount.text = count.toString()
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            db.expenseDao().getAllExpensesFlow().collectLatest { expenses ->
-                val monthlyTotal = StatisticsCalculator.expenses(expenses).monthlyTotal
-                binding.tvStatMonthlySpent.text = NumberFormat
-                    .getCurrencyInstance(Locale.forLanguageTag("es-MX")).format(monthlyTotal)
-            }
-        }
+    private fun render(data: Snapshot) {
+        val vehicle = data.vehicle
+        vehicleId = vehicle?.id
+        binding.tvVehicleName.text = vehicle?.displayName ?: getString(R.string.home_no_vehicle)
+        binding.tvVehicleDetails.text = vehicle?.let {
+            getString(R.string.home_mileage_details, NumberFormat.getIntegerInstance().format(it.mileage),
+                if (it.isPrimary) " · Principal" else "")
+        } ?: getString(R.string.home_no_vehicle_details)
+        binding.btnMileage.isVisible = vehicle != null
+        next = vehicle?.let { UpcomingReviews.next(data.maintenance, data.reminders, it.mileage) }
+        binding.tvNextServiceTitle.text = next?.title ?: getString(R.string.home_no_actions)
+        binding.tvNextServiceRemaining.text = next?.details ?: getString(R.string.home_no_actions_details)
+        binding.btnViewServiceDetails.isVisible = next != null
+        binding.tvMonthlySummary.text = getString(R.string.home_monthly_summary,
+            data.maintenance.count { it.status == Maintenance.STATUS_REALIZADO },
+            NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-MX"))
+                .format(StatisticsCalculator.expenses(data.expenses).monthlyTotal))
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
+    private fun openReminders() = startActivity(Intent(requireContext(), RecordatoriosActivity::class.java))
+    private fun guidance(mode: String) = startActivity(Intent(requireContext(), GuidanceActivity::class.java)
+        .putExtra(GuidanceActivity.EXTRA_MODE, mode))
+
+    override fun onDestroyView() { _binding = null; super.onDestroyView() }
 }

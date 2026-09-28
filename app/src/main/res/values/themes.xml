@@ -41,4 +41,11 @@
         <item name="hintEnabled">false</item>
         <item name="errorTextColor">@color/carcare_danger</item>
     </style>
+
+    <style name="Widget.CarCare.LabeledInput" parent="Widget.CarCare.TextInputLayout">
+        <item name="hintEnabled">true</item>
+        <item name="android:textColorHint">@color/carcare_text_secondary</item>
+        <item name="helperTextTextColor">@color/carcare_text_secondary</item>
+        <item name="hintTextColor">@color/carcare_electric_blue</item>
+    </style>
 </resources>

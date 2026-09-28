@@ -19,8 +19,8 @@
     <string name="maintenance_delete_title">Eliminar Mantenimiento</string>
     <string name="maintenance_delete_message">¿Estás seguro de que deseas eliminar este registro de mantenimiento?</string>
     <string name="maintenance_delete_confirm">Eliminar</string>
-    <string name="maintenance_next_date_help">Opcional; si se deja vacío se conserva la fecha del servicio.</string>
-    <string name="maintenance_next_mileage_help">Opcional; si se deja vacío se conserva el kilometraje del servicio.</string>
+    <string name="maintenance_next_date_help">Opcional; déjala vacía si aún no conoces la próxima fecha.</string>
+    <string name="maintenance_next_mileage_help">Opcional; es el odómetro total previsto para la próxima revisión.</string>
     <string name="expense_saved">Gasto registrado con éxito</string>
     <string name="reminder_saved">Recordatorio creado correctamente</string>
     <string name="reminder_alarm_error">El recordatorio se guardó, pero no se pudo programar el aviso. Actívalo nuevamente para reintentar.</string>

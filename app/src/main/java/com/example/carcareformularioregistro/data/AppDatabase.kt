@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [User::class, Vehicle::class, Maintenance::class, Expense::class, Reminder::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -74,6 +74,30 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** Preserve existing records; the previous default (newest car) becomes primary. */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE vehicles ADD COLUMN isPrimary INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE vehicles SET isPrimary = 1 WHERE id = (SELECT MAX(id) FROM vehicles)")
+                db.execSQL("ALTER TABLE reminders ADD COLUMN maintenanceId INTEGER")
+                // Older versions could save records with vehicleId=1 before adding a vehicle.
+                // Recover those associations instead of hiding or deleting the user's records.
+                db.execSQL("""
+                    INSERT INTO vehicles (id, name, brand, model, year, mileage, plates, photoUri, isPrimary)
+                    SELECT DISTINCT linked.vehicleId, 'Vehículo recuperado', '', '', 0, 0, '', NULL, 0
+                    FROM (
+                        SELECT vehicleId FROM maintenances UNION SELECT vehicleId FROM expenses
+                        UNION SELECT vehicleId FROM reminders
+                    ) AS linked LEFT JOIN vehicles v ON v.id = linked.vehicleId
+                    WHERE v.id IS NULL
+                """.trimIndent())
+                db.execSQL("""
+                    UPDATE vehicles SET isPrimary = 1 WHERE id = (SELECT MIN(id) FROM vehicles)
+                    AND NOT EXISTS (SELECT 1 FROM vehicles WHERE isPrimary = 1)
+                """.trimIndent())
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -81,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, DATABASE_NAME,
-                ).addMigrations(MIGRATION_1_2)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build().also { instance = it }
             }
     }
