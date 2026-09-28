@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reminder_all_day">Todo el día</string>
+    <string name="reminder_pick_time">Hora del pendiente: %1$s</string>
+    <string name="reminder_pick_time_title">Hora del pendiente</string>
+    <string name="reminder_all_day_help">Sin horario de cita. Si los avisos están activados, te recordaremos este pendiente a las 9:00 de ese día.</string>
+    <string name="reminder_timed_help">El aviso se programa a la hora que elijas, según la zona horaria del teléfono. Android puede retrasar la notificación.</string>
+</resources>

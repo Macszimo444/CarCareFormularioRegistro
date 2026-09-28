@@ -382,7 +382,8 @@ class AddMaintenanceActivity : AppCompatActivity() {
                             description = existing?.description ?: getString(R.string.service_reminder_notes, type),
                             dueDate = nextDate, dueMileage = nextMileage,
                             priority = existing?.priority ?: Reminder.PRIORITY_MEDIA,
-                            enabled = existing?.enabled ?: true, maintenanceId = id)
+                            enabled = existing?.enabled ?: true, maintenanceId = id,
+                            dueTime = existing?.dueTime?.takeIf { nextDate.isNotEmpty() })
                         if (existing == null) reminder.copy(id = db.reminderDao().insert(reminder).toInt())
                         else { db.reminderDao().update(reminder); reminder }
                     } else {

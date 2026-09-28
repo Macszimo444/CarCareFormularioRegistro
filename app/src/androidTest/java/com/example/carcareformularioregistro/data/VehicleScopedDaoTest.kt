@@ -32,7 +32,7 @@ class VehicleScopedDaoTest {
     }
 
     private fun openDatabase() = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-        .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4).build()
+        .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5).build()
 
     private suspend fun addVehicle(name: String): Int = db.vehicleDao().insertVehicle(Vehicle(
         name = name, brand = "Nissan", model = "Versa", year = 2020, mileage = 85000, plates = ""

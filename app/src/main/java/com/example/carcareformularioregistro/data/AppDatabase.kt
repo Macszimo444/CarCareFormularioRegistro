@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [User::class, Vehicle::class, Maintenance::class, Expense::class, Reminder::class, ImportedBackup::class],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -106,6 +106,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminders ADD COLUMN dueTime TEXT")
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -113,7 +119,7 @@ abstract class AppDatabase : RoomDatabase() {
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, DATABASE_NAME,
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build().also { instance = it }
             }
     }

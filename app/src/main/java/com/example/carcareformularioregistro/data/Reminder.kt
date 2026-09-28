@@ -14,7 +14,8 @@ data class Reminder(
     val dueMileage: Int = 0,
     val priority: String = PRIORITY_MEDIA, // "Alta", "Media", "Baja"
     val enabled: Boolean = true,
-    val maintenanceId: Int? = null
+    val maintenanceId: Int? = null,
+    val dueTime: String? = null // null: all-day; otherwise local HH:mm
 ) {
     companion object {
         const val PRIORITY_ALTA = "Alta"

@@ -14,6 +14,7 @@ Abre la carpeta de este repositorio en Android Studio, sincroniza Gradle y ejecu
 
 Se conservan Room, RecyclerView, ViewBinding y Material, la paleta oscura y las pantallas originales. El formulario de registro está en `RegistroActivity`; la navegación permanece en `MainActivity`.
 
+- [Actualización: horario opcional por recordatorio](docs/HORARIOS_RECORDATORIOS.md)
 - [Actualización: revisiones realizadas, comprobantes, respaldo y PDF](docs/REVISIONES_RESPALDOS_PDF.md)
 - [Actualización: kilometraje sin capturas repetidas](docs/KILOMETRAJE.md)
 - [Actualización: vehículos, asistente, CRUD, ayudas y privacidad](docs/MEJORAS_DEV_FINAL.md)
@@ -27,4 +28,4 @@ Se conservan Room, RecyclerView, ViewBinding y Material, la paleta oscura y las 
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-El proyecto conserva SDK 37, Gradle 9.5.0 y la configuración de JDK 25 del repositorio. Las migraciones Room de versión 1 → 2 → 3 → 4 preservan los usuarios y registros existentes; no se utilizan migraciones destructivas.
+El proyecto conserva SDK 37, Gradle 9.5.0 y la configuración de JDK 25 del repositorio. Las migraciones Room de versión 1 → 2 → 3 → 4 → 5 preservan los usuarios y registros existentes; no se utilizan migraciones destructivas.

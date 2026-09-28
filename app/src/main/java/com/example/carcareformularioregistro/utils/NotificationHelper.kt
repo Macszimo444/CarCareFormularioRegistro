@@ -19,8 +19,6 @@ import com.example.carcareformularioregistro.data.Reminder
 import com.example.carcareformularioregistro.ui.RecordatoriosActivity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.time.LocalDate
-import java.time.ZoneId
 
 object NotificationHelper {
     const val CHANNEL_ID = "carcare_reminders_channel"
@@ -69,9 +67,8 @@ object NotificationHelper {
         } else if (settings.wasDelivered(reminder) || reminder.dueDate.isBlank()) {
             true
         } else {
-            val date = FormValidation.date(reminder.dueDate)
-            if (date == null) false else {
-                val dueAt = LocalDate.parse(date).atTime(settings.hour, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val dueAt = ReminderSchedule.triggerAt(reminder)?.toInstant()?.toEpochMilli()
+            if (dueAt == null) false else {
                 scheduleReminderAlarm(context, reminder.id, reminder.title,
                     maxOf(dueAt, System.currentTimeMillis() + 60_000))
             }
@@ -108,12 +105,12 @@ object NotificationHelper {
         val settings = ReminderSettings(context)
         if (!reminder.enabled || !settings.enabled || settings.wasDelivered(reminder)) return@withLock
         val vehicle = db.vehicleDao().getById(reminder.vehicleId) ?: return@withLock
-        val date = FormValidation.date(reminder.dueDate)?.let(LocalDate::parse)
-        val dateReached = date?.atTime(settings.hour, 0)?.atZone(ZoneId.systemDefault())
-            ?.toInstant()?.toEpochMilli()?.let { it <= System.currentTimeMillis() } == true
+        val dateReached = ReminderSchedule.triggerAt(reminder)?.toInstant()?.toEpochMilli()
+            ?.let { it <= System.currentTimeMillis() } == true
         val mileageReached = mileageUpdate && reminder.dueMileage > 0 && vehicle.mileage >= reminder.dueMileage
         if (!dateReached && !mileageReached) return@withLock
-        val reason = if (mileageReached) "Alcanzaste ${reminder.dueMileage} km registrados." else "Llegó la fecha de tu revisión."
+        val reason = if (mileageReached) "Alcanzaste ${reminder.dueMileage} km registrados." else if (reminder.dueTime == null) "Tienes una revisión para hoy o pendiente de días anteriores."
+            else "Revisión programada para ${reminder.dueDate} a las ${reminder.dueTime}."
         val message = "${vehicle.displayName}: $reason ${reminder.description}".trim()
         if (showNotification(context, reminder.id, reminder.title, message, vehicle.id)) {
             settings.markDelivered(reminder)

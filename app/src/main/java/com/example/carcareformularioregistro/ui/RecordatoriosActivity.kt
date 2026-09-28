@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 class RecordatoriosActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRecordatoriosBinding
@@ -117,24 +116,11 @@ class RecordatoriosActivity : AppCompatActivity() {
     private fun showSettings() {
         val panel = DialogReminderSettingsBinding.inflate(layoutInflater)
         panel.switchNotifications.isChecked = settings.enabled
-        panel.btnNotificationTime.text = getString(R.string.reminders_time_button, settings.hour)
-        panel.btnNotificationTime.isEnabled = settings.enabled
         panel.switchNotifications.setOnCheckedChangeListener { _, checked ->
             settings.enabled = checked
-            panel.btnNotificationTime.isEnabled = checked
             if (checked && !NotificationHelper.notificationsAllowed(this)) requestNotificationAccess()
             updatePermissionHint()
             reschedule()
-        }
-        panel.btnNotificationTime.setOnClickListener {
-            val hours = (0..23).map { String.format(Locale.getDefault(), "%02d:00", it) }.toTypedArray()
-            AlertDialog.Builder(this).setTitle(R.string.reminders_time_title)
-                .setSingleChoiceItems(hours, settings.hour) { dialog, selected ->
-                    settings.hour = selected
-                    panel.btnNotificationTime.text = getString(R.string.reminders_time_button, selected)
-                    reschedule()
-                    dialog.dismiss()
-                }.setNegativeButton(R.string.cancelar, null).show()
         }
         panel.btnSystemNotifications.setOnClickListener {
             openSystemNotificationSettings()
@@ -211,6 +197,7 @@ class RecordatoriosActivity : AppCompatActivity() {
                     intent.removeExtra("open_reminder_id")
                     AlertDialog.Builder(this@RecordatoriosActivity).setTitle(target.title)
                         .setMessage(listOf(target.description, target.dueDate,
+                            if (target.dueDate.isNotBlank()) com.example.carcareformularioregistro.utils.ReminderSchedule.label(target) else "",
                             target.dueMileage.takeIf { it > 0 }?.let { "$it km" }.orEmpty()).filter { it.isNotBlank() }.joinToString("\n"))
                         .setPositiveButton(R.string.complete_review) { _, _ ->
                             startActivity(Intent(this@RecordatoriosActivity, AddMaintenanceActivity::class.java)

@@ -291,6 +291,78 @@ class MaintenanceReminderUiTest {
         } finally { store.delete(receipt) }
     }
 
+    @Test
+    fun individualTimeSurvivesRecreationAndAllDayOrMileageOnlyClearsIt() {
+        runBlocking {
+            val old = database.reminderDao().getById(independentReminderId)!!
+            database.reminderDao().update(old.copy(dueDate = "2090-01-01", dueMileage = 0, enabled = false))
+        }
+        openForm()
+        scenario!!.onActivity { AddReminderDialogFragment.edit(independentReminderId).show(it.supportFragmentManager, "target_test") }
+        awaitReminderLoaded()
+        onView(withId(R.id.switchAllDay)).inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog()).check(matches(isChecked())).perform(scrollTo(), click())
+        onView(withId(R.id.btnDueTime)).inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog()).perform(scrollTo(), click())
+        onView(androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom(android.widget.TimePicker::class.java))
+            .perform(object : androidx.test.espresso.ViewAction {
+                override fun getConstraints(): org.hamcrest.Matcher<View> = androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom(android.widget.TimePicker::class.java)
+                override fun getDescription() = "Choose 10:30 in the time picker"
+                override fun perform(controller: androidx.test.espresso.UiController, view: View) {
+                    (view as android.widget.TimePicker).apply { hour = 10; minute = 30 }
+                }
+            })
+        onView(withId(android.R.id.button1)).perform(click())
+        scenario!!.recreate()
+        awaitReminderLoaded()
+        onView(withId(R.id.btnDueTime)).inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog()).check(matches(withText(context.getString(R.string.reminder_pick_time, "10:30"))))
+        onView(withId(R.id.btnDueTime)).inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog()).perform(scrollTo())
+        // Allow the recreated dialog's window animation to finish before the visual capture.
+        android.os.SystemClock.sleep(500)
+        val screenshot = instrumentation.uiAutomation.takeScreenshot()
+        val shotFile = java.io.File(context.getExternalFilesDir(null), "qa/reminder-time.png")
+        shotFile.parentFile!!.mkdirs()
+        shotFile.outputStream().use { screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        screenshot.recycle()
+        onView(withId(R.id.btnSave)).perform(scrollTo(), click())
+        awaitDatabase("time saved") { database.reminderDao().getById(independentReminderId)?.dueTime == "10:30" }
+        scenario!!.onActivity { AddReminderDialogFragment.edit(independentReminderId).show(it.supportFragmentManager, "target_test") }
+        awaitReminderLoaded()
+        onView(withId(R.id.switchAllDay)).inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog()).perform(scrollTo(), click())
+        onView(withId(R.id.btnDueTime)).inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog()).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        onView(withId(R.id.btnSave)).perform(scrollTo(), click())
+        awaitDatabase("all day saved") { database.reminderDao().getById(independentReminderId)?.dueTime == null }
+        // An existing timed appointment switched to mileage-only must not retain a hidden hour.
+        runBlocking {
+            val old = database.reminderDao().getById(independentReminderId)!!
+            database.reminderDao().update(old.copy(dueTime = "10:30"))
+        }
+        scenario!!.onActivity { AddReminderDialogFragment.edit(independentReminderId).show(it.supportFragmentManager, "target_test") }
+        awaitReminderLoaded()
+        chooseTarget(R.string.target_mileage)
+        onView(withId(R.id.containerSchedule)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        fill(R.id.etDueMileage, "150000")
+        onView(withId(R.id.btnSave)).perform(scrollTo(), click())
+        awaitDatabase("mileage only saved") { database.reminderDao().getById(independentReminderId)?.dueDate == "" }
+        assertNull(runBlocking { database.reminderDao().getById(independentReminderId)?.dueTime })
+    }
+
+    @Test
+    fun editingMaintenancePreservesTheTimeOfItsLinkedReminder() {
+        val serviceId = runBlocking {
+            val id = database.maintenanceDao().insert(Maintenance(vehicleId = vehicleId, type = "$prefix Aceite",
+                date = "2026-01-01", mileage = 120000, cost = 0.0, workshop = "", nextDate = "2090-01-01", nextMileage = 0,
+                status = Maintenance.STATUS_REALIZADO)).toInt()
+            val reminder = database.reminderDao().getById(independentReminderId)!!
+            database.reminderDao().update(reminder.copy(maintenanceId = id, dueDate = "2090-01-01", dueMileage = 0,
+                dueTime = "11:45", enabled = false))
+            id
+        }
+        openForm(serviceId)
+        fill(R.id.etType, "$prefix Aceite editado")
+        onView(withId(R.id.btnSaveMaintenance)).perform(click())
+        awaitDatabase("maintenance edited") { database.maintenanceDao().getById(serviceId)?.type == "$prefix Aceite editado" }
+        assertEquals("11:45", runBlocking { database.reminderDao().getById(independentReminderId)?.dueTime })
+    }
+
     private fun chooseTarget(label: Int) {
         onView(withId(R.id.actTargetMode)).perform(scrollTo(), click())
         onView(withText(label)).inRoot(isPlatformPopup()).perform(click())
@@ -302,7 +374,7 @@ class MaintenanceReminderUiTest {
             var ready = false
             scenario!!.onActivity {
                 val view = it.supportFragmentManager.findFragmentByTag("target_test")?.view
-                ready = view?.findViewById<EditText>(R.id.etDueMileage)?.isEnabled == true
+                ready = view?.findViewById<EditText>(R.id.etDueMileage)?.isEnabled == true && view.hasWindowFocus()
             }
             if (ready) return
             SystemClock.sleep(50)

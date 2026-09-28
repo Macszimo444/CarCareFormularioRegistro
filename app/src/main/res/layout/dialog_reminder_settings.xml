@@ -15,16 +15,6 @@
         android:textColor="@color/carcare_text_primary"
         app:useMaterialThemeColors="true" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnNotificationTime"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:layout_marginTop="12dp"
-        android:textAllCaps="false"
-        android:textColor="@color/carcare_electric_blue" />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

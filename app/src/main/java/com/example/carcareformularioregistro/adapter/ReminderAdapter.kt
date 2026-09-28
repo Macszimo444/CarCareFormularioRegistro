@@ -10,6 +10,7 @@ import com.example.carcareformularioregistro.R
 import com.example.carcareformularioregistro.data.Reminder
 import com.example.carcareformularioregistro.databinding.ItemReminderBinding
 import com.example.carcareformularioregistro.utils.FormValidation
+import com.example.carcareformularioregistro.utils.ReminderSchedule
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -43,7 +44,7 @@ class ReminderAdapter(
             binding.tvLinked.isVisible = item.maintenanceId != null
             val date = FormValidation.date(item.dueDate)?.let(LocalDate::parse)
             val targets = buildList {
-                date?.let { add(context.getString(R.string.reminder_date_target, it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))) }
+                date?.let { add(context.getString(R.string.reminder_date_target, it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))) + " · " + ReminderSchedule.label(item)) }
                 if (item.dueMileage > 0) add(context.getString(R.string.reminder_mileage_target, format.format(item.dueMileage)))
             }
             binding.tvDueDate.text = targets.joinToString("\n").ifBlank { context.getString(R.string.reminder_no_target) }

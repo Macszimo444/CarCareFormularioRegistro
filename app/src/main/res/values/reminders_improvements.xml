@@ -16,7 +16,7 @@
     <string name="service_next_mileage_help">Kilometraje total para la próxima revisión, por ejemplo, 95000. No son los kilómetros restantes.</string>
     <string name="service_plan_help">Usa el manual de tu vehículo o la indicación del taller. La frecuencia varía por modelo, condiciones de uso y servicio.</string>
     <string name="service_create_reminder">Crear o conservar recordatorio de esta revisión</string>
-    <string name="service_link_help">El aviso usará la próxima fecha o kilometraje, lo que ocurra primero. El kilometraje se revisa cuando actualizas el odómetro del vehículo. Al desmarcar se elimina solo el recordatorio vinculado, no los independientes.</string>
+    <string name="service_link_help">El aviso usará la próxima fecha o kilometraje, lo que ocurra primero. Puedes elegir su horario desde Recordatorios. El kilometraje se revisa cuando actualizas el odómetro del vehículo. Al desmarcar se elimina solo el recordatorio vinculado, no los independientes.</string>
     <string name="service_target_required">Para crear un recordatorio, indica una próxima fecha o kilometraje.</string>
     <string name="service_next_date_invalid">La próxima revisión debe ser posterior a la fecha del servicio.</string>
     <string name="service_next_mileage_invalid">Debe ser mayor que el kilometraje de este servicio.</string>
@@ -49,9 +49,7 @@
     <string name="reminders_intro">Organiza tus próximas revisiones por fecha o kilometraje registrado.</string>
     <string name="reminders_empty_help">Programa una revisión con el botón de abajo o desde un mantenimiento.</string>
     <string name="reminders_notifications_switch">Permitir avisos de CarCare</string>
-    <string name="reminders_time_button">Hora de avisos: %1$02d:00</string>
-    <string name="reminders_time_title">Hora para avisos por fecha</string>
-    <string name="reminders_time_help">Android puede retrasar los avisos para ahorrar batería. Los avisos por kilometraje se comprueban al actualizar el vehículo.</string>
+    <string name="reminders_time_help">El horario se elige dentro de cada recordatorio. Android puede retrasar las notificaciones para ahorrar batería. Los avisos por kilometraje se comprueban al actualizar el vehículo.</string>
     <string name="reminders_permission_hint">Avisos desactivados en Android. Toca aquí para permitirlos. Tus recordatorios siguen guardados.</string>
     <string name="reminders_permission_button">Abrir ajustes de notificaciones</string>
 </resources>

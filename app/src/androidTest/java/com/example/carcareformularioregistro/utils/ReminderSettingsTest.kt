@@ -37,6 +37,7 @@ class ReminderSettingsTest {
         assertFalse(reopened.wasDelivered(reminder.copy(dueMileage = 105000)))
         assertFalse(reopened.wasDelivered(reminder.copy(dueDate = "2027-07-20")))
         assertFalse(reopened.wasDelivered(reminder.copy(id = 43)))
+        assertFalse(reopened.wasDelivered(reminder.copy(dueTime = "10:30")))
         reopened.forget(reminder.id)
         assertFalse(ReminderSettings(context).wasDelivered(reminder))
     }
@@ -44,13 +45,8 @@ class ReminderSettingsTest {
     @Test fun notificationPreferencesPersistIndependentlyOfReminderDelivery() {
         val settings = ReminderSettings(context)
         assertTrue(settings.enabled)
-        assertEquals(9, settings.hour)
         settings.enabled = false
-        settings.hour = 18
         val reopened = ReminderSettings(context)
         assertFalse(reopened.enabled)
-        assertEquals(18, reopened.hour)
-        reopened.hour = 99
-        assertEquals(23, reopened.hour)
     }
 }

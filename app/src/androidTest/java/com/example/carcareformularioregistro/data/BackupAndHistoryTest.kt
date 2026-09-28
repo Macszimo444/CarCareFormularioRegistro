@@ -54,7 +54,7 @@ class BackupAndHistoryTest {
             status = Maintenance.STATUS_REALIZADO, receipt = if (withReceipt) receipt() else null)).toInt()
         db.expenseDao().insert(Expense(vehicleId = car, category = Expense.CAT_COMBUSTIBLE, concept = "Gasolina", amount = 600.0, date = "2026-01-02"))
         db.reminderDao().insert(Reminder(vehicleId = car, title = "Revisión de aceite", dueDate = "2090-01-01", dueMileage = 130000,
-            maintenanceId = service, enabled = false))
+            maintenanceId = service, enabled = false, dueTime = "10:30"))
         return car to service
     }
 
@@ -75,6 +75,7 @@ class BackupAndHistoryTest {
         assertNotEquals(existing.first, car)
         val item = target.maintenanceDao().getAllMaintenances().single { it.vehicleId == car }
         val reminder = target.reminderDao().getById(restored.reminderIds.single())!!
+        assertEquals("10:30", reminder.dueTime)
         assertEquals(item.id, reminder.maintenanceId)
         assertEquals(car, reminder.vehicleId)
         assertEquals(1, target.expenseDao().getAllExpenses().count { it.vehicleId == car })
@@ -84,6 +85,28 @@ class BackupAndHistoryTest {
         assertTrue(importer.alreadyImported(preview))
         try { importer.restore(preview); fail("Duplicate import accepted") } catch (_: IllegalArgumentException) { }
         assertEquals(2, target.vehicleDao().getVehicleCount())
+    }
+
+    @Test fun legacyVersion1BackupRestoresAllDayReminders() = runBlocking {
+        seed(source, false)
+        val bytes = ByteArrayOutputStream()
+        BackupArchive(context, source).export(bytes)
+        val manifest = java.util.zip.ZipInputStream(ByteArrayInputStream(bytes.toByteArray())).use { zip ->
+            assertEquals("carcare.json", zip.nextEntry.name)
+            org.json.JSONObject(zip.readBytes().toString(Charsets.UTF_8))
+        }
+        manifest.put("version", 1)
+        val reminders = manifest.getJSONArray("reminders")
+        for (i in 0 until reminders.length()) reminders.getJSONObject(i).remove("dueTime")
+        val oldZip = ByteArrayOutputStream()
+        ZipOutputStream(oldZip).use { zip ->
+            zip.putNextEntry(ZipEntry("carcare.json")); zip.write(manifest.toString().toByteArray()); zip.closeEntry()
+        }
+        val importer = BackupArchive(context, target)
+        val preview = importer.inspect(ByteArrayInputStream(oldZip.toByteArray())).also(previews::add)
+        importer.restore(preview)
+        assertNull(target.reminderDao().getAllReminders().single().dueTime)
+        assertEquals("2090-01-01", target.reminderDao().getAllReminders().single().dueDate)
     }
 
     @Test fun damagedArchiveIsRejectedWithoutDatabaseWrites() = runBlocking {

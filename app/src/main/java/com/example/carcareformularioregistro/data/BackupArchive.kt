@@ -135,7 +135,7 @@ class BackupArchive(private val context: Context, private val db: AppDatabase = 
         } finally { if (!committed) copied.values.forEach(files::delete) }
     }
 
-    private fun encode(s: Snapshot) = JSONObject().put("format", "CarCare").put("version", 1)
+    private fun encode(s: Snapshot) = JSONObject().put("format", "CarCare").put("version", 2)
         .put("users", array(s.users) { JSONObject().put("id", it.id).put("nombre", it.nombre).put("apellidos", it.apellidos)
             .put("direccion", it.direccion).put("telefono", it.telefono).put("email", it.email) })
         .put("vehicles", array(s.vehicles) { JSONObject().put("id", it.id).put("name", it.name).put("brand", it.brand)
@@ -148,10 +148,10 @@ class BackupArchive(private val context: Context, private val db: AppDatabase = 
             .put("concept", it.concept).put("amount", it.amount).put("date", it.date).put("description", it.description) })
         .put("reminders", array(s.reminders) { JSONObject().put("id", it.id).put("vehicleId", it.vehicleId).put("title", it.title)
             .put("description", it.description).put("dueDate", it.dueDate).put("dueMileage", it.dueMileage)
-            .put("priority", it.priority).put("enabled", it.enabled).put("maintenanceId", it.maintenanceId ?: JSONObject.NULL) })
+            .put("priority", it.priority).put("enabled", it.enabled).put("maintenanceId", it.maintenanceId ?: JSONObject.NULL).put("dueTime", it.dueTime ?: JSONObject.NULL) })
 
     private fun decode(o: JSONObject): Snapshot {
-        require(o.getString("format") == "CarCare" && o.integer("version") == 1) { "Versión de respaldo no compatible" }
+        require(o.getString("format") == "CarCare" && o.integer("version") in 1..2) { "Versión de respaldo no compatible" }
         return Snapshot(
             rows(o, "users") { User(it.integer("id"), it.text("nombre"), it.text("apellidos"), it.text("direccion"), it.text("telefono"), it.text("email")) },
             rows(o, "vehicles") { Vehicle(id = it.integer("id"), name = it.text("name"), brand = it.text("brand"), model = it.text("model"),
@@ -164,7 +164,8 @@ class BackupArchive(private val context: Context, private val db: AppDatabase = 
                 it.getDouble("amount"), it.text("date"), it.text("description")) },
             rows(o, "reminders") { Reminder(it.integer("id"), it.integer("vehicleId"), it.text("title"), it.text("description"),
                 it.text("dueDate"), it.integer("dueMileage"), it.text("priority"), it.getBoolean("enabled"),
-                if (it.isNull("maintenanceId")) null else it.integer("maintenanceId")) }
+                if (it.isNull("maintenanceId")) null else it.integer("maintenanceId"),
+                if (o.integer("version") == 1 || it.isNull("dueTime")) null else it.text("dueTime")) }
         )
     }
 
@@ -188,6 +189,8 @@ class BackupArchive(private val context: Context, private val db: AppDatabase = 
         require(linked.size == linked.toSet().size) { "Hay recordatorios vinculados duplicados" }
         s.reminders.forEach {
             require(it.vehicleId in cars && it.dueMileage in 0..9_999_999)
+            require(it.dueTime == null || (it.dueDate.isNotEmpty() &&
+                com.example.carcareformularioregistro.utils.ReminderSchedule.time(it.dueTime) != null))
             require(it.dueDate.isEmpty() || FormValidation.date(it.dueDate) != null)
             require(it.maintenanceId == null || services[it.maintenanceId]?.vehicleId == it.vehicleId) { "Referencia de mantenimiento inválida" }
         }

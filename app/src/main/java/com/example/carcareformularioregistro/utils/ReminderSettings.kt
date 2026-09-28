@@ -9,11 +9,11 @@ class ReminderSettings(context: Context) {
     var enabled: Boolean
         get() = prefs.getBoolean("enabled", true)
         set(value) { prefs.edit().putBoolean("enabled", value).apply() }
-    var hour: Int
-        get() = prefs.getInt("hour", 9).coerceIn(0, 23)
-        set(value) { prefs.edit().putInt("hour", value.coerceIn(0, 23)).apply() }
-
-    private fun signature(reminder: Reminder) = "${reminder.dueDate}|${reminder.dueMileage}"
+    private fun signature(reminder: Reminder): String {
+        val base = "${reminder.dueDate}|${reminder.dueMileage}"
+        // Keep old all-day delivery markers, but a changed appointment time is a new target.
+        return reminder.dueTime?.takeIf { reminder.dueDate.isNotBlank() }?.let { "$base|$it" } ?: base
+    }
     fun wasDelivered(reminder: Reminder): Boolean =
         prefs.getString("delivered_${reminder.id}", null) == signature(reminder)
     fun markDelivered(reminder: Reminder) {

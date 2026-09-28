@@ -1,6 +1,10 @@
 package com.example.carcareformularioregistro.ui
 
 import android.os.Bundle
+import android.app.TimePickerDialog
+import com.example.carcareformularioregistro.utils.ReminderSchedule
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +34,7 @@ class AddReminderDialogFragment : DialogFragment() {
     private var saving = false
     private var loaded = false
     private var targetMode = ReviewTargetMode.DATE
+    private var selectedTime = LocalTime.of(9, 0)
     private var vehicleId = 0
     private var original: Reminder? = null
     private val editingId get() = arguments?.getInt("reminder_id", 0) ?: 0
@@ -43,6 +48,17 @@ class AddReminderDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         FormDatePicker.attach(binding.tilDueDate)
+        selectedTime = ReminderSchedule.time(savedInstanceState?.getString("chosen_time")) ?: LocalTime.of(9, 0)
+        binding.switchAllDay.isChecked = savedInstanceState?.getBoolean("all_day") ?: true
+        binding.switchAllDay.setOnCheckedChangeListener { _, _ -> renderSchedule() }
+        binding.btnDueTime.setOnClickListener {
+            TimePickerDialog(requireContext(), { _, hour, minute ->
+                selectedTime = LocalTime.of(hour, minute)
+                renderSchedule()
+            }, selectedTime.hour, selectedTime.minute, true).apply {
+                setTitle(R.string.reminder_pick_time_title)
+            }.show()
+        }
         vehicleId = savedInstanceState?.getInt("vehicle_id") ?: 0
         binding.actPriority.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, priorities))
         binding.tvTitle.setText(if (editingId > 0) R.string.reminder_edit_title else R.string.reminder_new_title)
@@ -83,6 +99,8 @@ class AddReminderDialogFragment : DialogFragment() {
                     binding.etDueDate.setText(item?.dueDate ?: LocalDate.now().toString())
                     binding.etDueMileage.setText(item?.dueMileage?.takeIf { it > 0 }?.toString().orEmpty())
                     binding.actPriority.setText(item?.priority ?: Reminder.PRIORITY_MEDIA, false)
+                    selectedTime = ReminderSchedule.time(item?.dueTime) ?: LocalTime.of(9, 0)
+                    binding.switchAllDay.isChecked = item?.dueTime == null
                     showTargetMode(ReviewTargetMode.fromTargets(item?.dueDate.orEmpty(), item?.dueMileage ?: 0))
                 }
                 loaded = true
@@ -95,9 +113,19 @@ class AddReminderDialogFragment : DialogFragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("chosen_time", selectedTime.format(DateTimeFormatter.ofPattern("HH:mm")))
+        outState.putBoolean("all_day", binding.switchAllDay.isChecked)
         outState.putString("target_mode", targetMode.name)
         outState.putInt("vehicle_id", vehicleId)
         super.onSaveInstanceState(outState)
+    }
+
+    private fun renderSchedule() {
+        binding.containerSchedule.isVisible = targetMode.usesDate
+        binding.btnDueTime.isVisible = !binding.switchAllDay.isChecked
+        binding.btnDueTime.text = getString(R.string.reminder_pick_time,
+            selectedTime.format(DateTimeFormatter.ofPattern("HH:mm")))
+        binding.tvScheduleHelp.setText(if (binding.switchAllDay.isChecked) R.string.reminder_all_day_help else R.string.reminder_timed_help)
     }
 
     private fun showTargetMode(mode: ReviewTargetMode) {
@@ -108,6 +136,7 @@ class AddReminderDialogFragment : DialogFragment() {
         binding.tvTargetHelp.setText(mode.shortHelp)
         binding.tilDueDate.error = null
         binding.tilDueMileage.error = null
+        renderSchedule()
     }
 
     private fun saveReminder() {
@@ -159,7 +188,9 @@ class AddReminderDialogFragment : DialogFragment() {
                     }
                     val item = Reminder(id = editingId, vehicleId = vehicleId, title = title, description = description,
                         dueDate = dueDate, dueMileage = dueMileage, priority = priority,
-                        enabled = current?.enabled ?: true, maintenanceId = linked?.id)
+                        enabled = current?.enabled ?: true, maintenanceId = linked?.id,
+                        dueTime = if (targetMode.usesDate && !binding.switchAllDay.isChecked)
+                            selectedTime.format(DateTimeFormatter.ofPattern("HH:mm")) else null)
                     if (editingId > 0) { db.reminderDao().update(item); item }
                     else item.copy(id = db.reminderDao().insert(item).toInt())
                 }
@@ -177,6 +208,8 @@ class AddReminderDialogFragment : DialogFragment() {
         saving = value
         isCancelable = !value
         _binding?.let {
+            it.switchAllDay.isEnabled = !value
+            it.btnDueTime.isEnabled = !value
             it.btnSave.isEnabled = !value
             it.btnCancel.isEnabled = !value
             listOf(it.etTitle, it.etDescription, it.etDueDate, it.etDueMileage, it.actPriority, it.actTargetMode).forEach { field -> field.isEnabled = !value }
