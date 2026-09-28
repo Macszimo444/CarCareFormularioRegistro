@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="target_mode_hint">¿Cómo quieres programar la revisión?</string>
+    <string name="target_date">Por fecha</string>
+    <string name="target_mileage">Por kilometraje</string>
+    <string name="target_both">Fecha o kilometraje</string>
+    <string name="target_date_help">Elige el día de la revisión. No necesitas introducir kilómetros.</string>
+    <string name="target_mileage_help">Indica la lectura total que debe alcanzar el odómetro, no los kilómetros que faltan. El aviso se comprueba cuando actualizas el kilometraje en Inicio.</string>
+    <string name="target_both_help">Se toma lo que ocurra primero: la fecha o el kilometraje objetivo. Los kilómetros se comprueban cuando actualizas la lectura en Inicio.</string>
+    <string name="service_mileage_summary">Kilometraje del servicio: %1$s km</string>
+    <string name="service_mileage_auto_help">Usamos la lectura guardada del coche. Si el servicio fue en otro momento, puedes cambiarla aquí; esto no modifica el kilometraje actual del vehículo.</string>
+    <string name="service_mileage_saved_help">Esta es la lectura registrada para este servicio. Cambiarla no modifica el kilometraje actual del vehículo.</string>
+    <string name="service_mileage_change">Cambiar kilometraje del servicio</string>
+    <string name="service_mileage_close">Listo, ocultar campo</string>
+    <string name="service_mileage_missing">Revisa el kilometraje del servicio</string>
+    <string name="vehicle_mileage_readonly">Lectura actual: %1$s km. Para actualizarla, selecciona este coche en Inicio y pulsa Actualizar kilometraje.</string>
+    <string name="vehicle_edit_intro">Edita los datos de tu coche. El kilometraje se actualiza desde Inicio.</string>
+    <string name="home_mileage_purpose">La lectura sirve para calcular cuántos kilómetros faltan para tus revisiones.</string>
+</resources>

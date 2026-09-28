@@ -62,6 +62,14 @@
                     android:textColor="@color/carcare_text_secondary"
                     android:textSize="14sp" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/home_mileage_purpose"
+                    android:textColor="@color/carcare_text_secondary"
+                    android:textSize="13sp" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnMileage"
                     style="@style/Widget.Material3.Button.OutlinedButton"

@@ -14,6 +14,7 @@ Abre la carpeta de este repositorio en Android Studio, sincroniza Gradle y ejecu
 
 Se conservan Room, RecyclerView, ViewBinding y Material, la paleta oscura y las pantallas originales. El formulario de registro está en `RegistroActivity`; la navegación permanece en `MainActivity`.
 
+- [Actualización: kilometraje sin capturas repetidas](docs/KILOMETRAJE.md)
 - [Actualización: vehículos, asistente, CRUD, ayudas y privacidad](docs/MEJORAS_DEV_FINAL.md)
 - [Fuentes de orientación mecánica](docs/SOURCES_GUIDANCE.md)
 - [Análisis de la integración inicial](docs/DEV_FINAL.md)

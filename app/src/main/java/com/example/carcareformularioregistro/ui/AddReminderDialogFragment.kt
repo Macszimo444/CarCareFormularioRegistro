@@ -29,6 +29,7 @@ class AddReminderDialogFragment : DialogFragment() {
     private val db by lazy { AppDatabase.getInstance(requireContext().applicationContext) }
     private var saving = false
     private var loaded = false
+    private var targetMode = ReviewTargetMode.DATE
     private var vehicleId = 0
     private var original: Reminder? = null
     private val editingId get() = arguments?.getInt("reminder_id", 0) ?: 0
@@ -47,6 +48,10 @@ class AddReminderDialogFragment : DialogFragment() {
         binding.tvTitle.setText(if (editingId > 0) R.string.reminder_edit_title else R.string.reminder_new_title)
         binding.btnCancel.setOnClickListener { dismiss() }
         binding.btnSave.setOnClickListener { saveReminder() }
+        binding.actTargetMode.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line,
+            ReviewTargetMode.entries.map { getString(it.label) }))
+        binding.actTargetMode.setOnItemClickListener { _, _, position, _ -> showTargetMode(ReviewTargetMode.entries[position]) }
+        showTargetMode(ReviewTargetMode.restore(savedInstanceState?.getString("target_mode")))
         setSaving(true)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -74,6 +79,7 @@ class AddReminderDialogFragment : DialogFragment() {
                     binding.etDueDate.setText(item?.dueDate ?: LocalDate.now().toString())
                     binding.etDueMileage.setText(item?.dueMileage?.takeIf { it > 0 }?.toString().orEmpty())
                     binding.actPriority.setText(item?.priority ?: Reminder.PRIORITY_MEDIA, false)
+                    showTargetMode(ReviewTargetMode.fromTargets(item?.dueDate.orEmpty(), item?.dueMileage ?: 0))
                 }
                 loaded = true
             } catch (error: CancellationException) { throw error }
@@ -85,8 +91,19 @@ class AddReminderDialogFragment : DialogFragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("target_mode", targetMode.name)
         outState.putInt("vehicle_id", vehicleId)
         super.onSaveInstanceState(outState)
+    }
+
+    private fun showTargetMode(mode: ReviewTargetMode) {
+        targetMode = mode
+        binding.actTargetMode.setText(getString(mode.label), false)
+        binding.tilDueDate.isVisible = mode.usesDate
+        binding.tilDueMileage.isVisible = mode.usesMileage
+        binding.tvTargetHelp.setText(mode.help)
+        binding.tilDueDate.error = null
+        binding.tilDueMileage.error = null
     }
 
     private fun saveReminder() {
@@ -94,8 +111,8 @@ class AddReminderDialogFragment : DialogFragment() {
         listOf(binding.tilTitle, binding.tilDueDate, binding.tilDueMileage, binding.tilPriority).forEach { it.error = null }
         val title = binding.etTitle.text?.toString()?.trim().orEmpty()
         val description = binding.etDescription.text?.toString()?.trim().orEmpty()
-        val dateText = binding.etDueDate.text?.toString()?.trim().orEmpty()
-        val mileageText = binding.etDueMileage.text?.toString()?.trim().orEmpty()
+        val dateText = if (targetMode.usesDate) binding.etDueDate.text?.toString()?.trim().orEmpty() else ""
+        val mileageText = if (targetMode.usesMileage) binding.etDueMileage.text?.toString()?.trim().orEmpty() else ""
         val dueDate = if (dateText.isBlank()) "" else FormValidation.date(dateText)
         val dueMileage = if (mileageText.isBlank()) 0 else FormValidation.mileage(mileageText)
         val priority = binding.actPriority.text?.toString()?.trim().orEmpty()
@@ -108,7 +125,8 @@ class AddReminderDialogFragment : DialogFragment() {
             dueMileage == null || dueMileage > 9_999_999 || (mileageText.isNotEmpty() && dueMileage == 0) -> {
                 binding.tilDueMileage.error = getString(R.string.form_invalid_mileage); return
             }
-            dueDate.isEmpty() && dueMileage == 0 -> { binding.tilDueDate.error = getString(R.string.reminder_target_required); return }
+            targetMode.usesDate && dueDate.isEmpty() -> { binding.tilDueDate.error = getString(R.string.form_required); return }
+            targetMode.usesMileage && dueMileage == 0 -> { binding.tilDueMileage.error = getString(R.string.form_required); return }
             priority !in priorities -> { binding.tilPriority.error = getString(R.string.form_invalid_option); return }
         }
         setSaving(true)
@@ -157,7 +175,7 @@ class AddReminderDialogFragment : DialogFragment() {
         _binding?.let {
             it.btnSave.isEnabled = !value
             it.btnCancel.isEnabled = !value
-            listOf(it.etTitle, it.etDescription, it.etDueDate, it.etDueMileage, it.actPriority).forEach { field -> field.isEnabled = !value }
+            listOf(it.etTitle, it.etDescription, it.etDueDate, it.etDueMileage, it.actPriority, it.actTargetMode).forEach { field -> field.isEnabled = !value }
         }
     }
 

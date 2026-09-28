@@ -10,9 +10,9 @@
     <string name="service_status_help">Realizado: ya se hizo. Próximo: planeado. Pendiente: aún falta atenderlo. El historial muestra los realizados.</string>
     <string name="service_notes_help">Opcional: piezas cambiadas, tipo de aceite u observaciones del taller. No escribas datos personales.</string>
     <string name="service_cost_help">Importe pagado en MXN. Si no hubo costo, escribe 0.</string>
-    <string name="service_next_date_hint">Próxima fecha (opcional)</string>
-    <string name="service_next_mileage_hint">Próximo odómetro en km (opcional)</string>
-    <string name="service_next_date_help">La fecha prevista para repetir la revisión. Puedes dejarla vacía si aún no la conoces.</string>
+    <string name="service_next_date_hint">Próxima fecha</string>
+    <string name="service_next_mileage_hint">Próximo odómetro en km</string>
+    <string name="service_next_date_help">La fecha prevista para repetir la revisión. Si eliges solo kilometraje, no necesitas fecha.</string>
     <string name="service_next_mileage_help">Kilometraje total para la próxima revisión, por ejemplo, 95000. No son los kilómetros restantes.</string>
     <string name="service_plan_help">Usa el manual de tu vehículo o la indicación del taller. La frecuencia varía por modelo, condiciones de uso y servicio.</string>
     <string name="service_create_reminder">Crear o conservar recordatorio de esta revisión</string>
@@ -30,8 +30,8 @@
     <string name="reminder_new_title">Nuevo recordatorio</string>
     <string name="reminder_target_help">Indica una fecha, un kilometraje o ambos. Te avisamos una vez por objetivo. El aviso por km depende de que actualices el odómetro; CarCare no mide tus recorridos.</string>
     <string name="reminder_target_required">Indica al menos una fecha o un kilometraje.</string>
-    <string name="reminder_mileage_hint">Odómetro objetivo en km (opcional)</string>
-    <string name="reminder_date_hint">Fecha del aviso (opcional)</string>
+    <string name="reminder_mileage_hint">Odómetro objetivo en km</string>
+    <string name="reminder_date_hint">Fecha del aviso</string>
     <string name="reminder_linked_help">Vinculado a un mantenimiento. Al cambiar fecha o kilometraje también se actualiza su próxima revisión.</string>
     <string name="reminder_save_changes">Guardar recordatorio</string>
     <string name="reminder_saved_updated">Recordatorio guardado</string>

@@ -111,6 +111,30 @@
                     android:textSize="15sp" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:id="@+id/tvServiceMileage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/carcare_text_primary"
+                android:textSize="15sp" />
+            <TextView
+                android:id="@+id/tvServiceMileageHelp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/carcare_text_secondary"
+                android:textSize="13sp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToggleServiceMileage"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:textAllCaps="false"
+                android:gravity="start|center_vertical"
+                android:textColor="@color/carcare_electric_blue" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilMileage"
                 style="@style/Widget.CarCare.LabeledInput"
@@ -228,6 +252,33 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="@string/service_plan_help"
+                    android:textColor="@color/carcare_text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilTargetMode"
+                    style="@style/Widget.CarCare.LabeledInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="@string/target_mode_hint"
+                    app:endIconMode="dropdown_menu"
+                    app:endIconTint="@color/carcare_text_secondary">
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/actTargetMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="56dp"
+                        android:inputType="none"
+                        android:saveEnabled="false"
+                        android:padding="16dp"
+                        android:textColor="@color/carcare_text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+                <TextView
+                    android:id="@+id/tvTargetHelp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:textColor="@color/carcare_text_secondary"
                     android:textSize="13sp" />
 

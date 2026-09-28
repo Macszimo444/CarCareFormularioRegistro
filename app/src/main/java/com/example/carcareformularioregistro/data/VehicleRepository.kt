@@ -39,14 +39,17 @@ class VehicleRepository private constructor(context: Context) {
         selectedId.value = id
     }
 
-    suspend fun saveVehicle(vehicle: Vehicle, makePrimary: Boolean = vehicle.isPrimary): Int {
+    suspend fun saveVehicle(vehicle: Vehicle, makePrimary: Boolean = vehicle.isPrimary, updateMileage: Boolean = true): Int {
         var previousMileage: Int? = null
+        var savedMileage = vehicle.mileage
         val id = db.withTransaction {
             val old = if (vehicle.id == 0) null else db.vehicleDao().getById(vehicle.id)
             require(vehicle.id == 0 || old != null) { "El vehículo ya no existe" }
             previousMileage = old?.mileage
             val primary = makePrimary || old?.isPrimary == true || db.vehicleDao().getVehicleCount() == 0
-            val saved = vehicle.copy(isPrimary = primary)
+            // Editing descriptive details must preserve the latest odometer, even if the form is stale.
+            savedMileage = if (!updateMileage && old != null) old.mileage else vehicle.mileage
+            val saved = vehicle.copy(isPrimary = primary, mileage = savedMileage)
             val result = if (old == null) db.vehicleDao().insertVehicle(saved).toInt() else {
                 db.vehicleDao().updateVehicle(saved)
                 saved.id
@@ -55,7 +58,7 @@ class VehicleRepository private constructor(context: Context) {
             result
         }
         if (vehicle.id == 0) selectVehicle(id)
-        if (previousMileage != vehicle.mileage) notificationScope.launch {
+        if (previousMileage != savedMileage) notificationScope.launch {
             try { NotificationHelper.rescheduleVehicle(app, id) }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (error: Exception) { Log.w("CarCare", "Saved vehicle; could not refresh its alerts", error) }

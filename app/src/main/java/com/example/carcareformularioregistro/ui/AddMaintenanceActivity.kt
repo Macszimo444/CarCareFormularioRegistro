@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.room.withTransaction
@@ -27,7 +28,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.time.LocalDate
+import java.util.Locale
 
 class AddMaintenanceActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddMaintenanceBinding
@@ -36,6 +39,7 @@ class AddMaintenanceActivity : AppCompatActivity() {
     private var vehicleId = 0
     private var busy = false
     private var loaded = false
+    private var targetMode = ReviewTargetMode.DATE
     private val statuses = listOf(Maintenance.STATUS_PROXIMO, Maintenance.STATUS_PENDIENTE, Maintenance.STATUS_REALIZADO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,16 +69,51 @@ class AddMaintenanceActivity : AppCompatActivity() {
         binding.btnDeleteMaintenance.setOnClickListener { confirmDelete() }
         binding.btnToggleDetails.setOnClickListener { showDetails(!binding.containerDetails.isVisible) }
         binding.btnTogglePlan.setOnClickListener { showPlan(!binding.containerPlan.isVisible) }
+        binding.btnToggleServiceMileage.setOnClickListener { showServiceMileage(!binding.tilMileage.isVisible) }
+        binding.etMileage.doAfterTextChanged { updateMileageSummary() }
+        binding.tvServiceMileageHelp.setText(if (editingId > 0) R.string.service_mileage_saved_help else R.string.service_mileage_auto_help)
+        showServiceMileage(savedInstanceState?.getBoolean("mileage_open") == true)
+        binding.actTargetMode.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line,
+            ReviewTargetMode.entries.map { getString(it.label) }))
+        binding.actTargetMode.setOnItemClickListener { _, _, position, _ -> showTargetMode(ReviewTargetMode.entries[position]) }
+        showTargetMode(ReviewTargetMode.restore(savedInstanceState?.getString("target_mode")))
         showDetails(savedInstanceState?.getBoolean("details_open") == true)
         showPlan(savedInstanceState?.getBoolean("plan_open") == true)
         loadData(savedInstanceState == null)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("target_mode", targetMode.name)
+        outState.putBoolean("mileage_open", binding.tilMileage.isVisible)
         outState.putInt("vehicle_id", vehicleId)
         outState.putBoolean("details_open", binding.containerDetails.isVisible)
         outState.putBoolean("plan_open", binding.containerPlan.isVisible)
         super.onSaveInstanceState(outState)
+    }
+
+    private fun showServiceMileage(open: Boolean) {
+        if (!open && binding.etMileage.hasFocus()) {
+            binding.etMileage.clearFocus()
+            WindowCompat.getInsetsController(window, binding.root).hide(WindowInsetsCompat.Type.ime())
+        }
+        binding.tilMileage.isVisible = open
+        binding.btnToggleServiceMileage.setText(if (open) R.string.service_mileage_close else R.string.service_mileage_change)
+    }
+
+    private fun updateMileageSummary() {
+        val mileage = FormValidation.mileage(binding.etMileage.text.toString())
+        binding.tvServiceMileage.text = if (mileage == null) getString(R.string.service_mileage_missing)
+            else getString(R.string.service_mileage_summary, NumberFormat.getIntegerInstance(Locale.forLanguageTag("es-MX")).format(mileage))
+    }
+
+    private fun showTargetMode(mode: ReviewTargetMode) {
+        targetMode = mode
+        binding.actTargetMode.setText(getString(mode.label), false)
+        binding.tilNextDate.isVisible = mode.usesDate
+        binding.tilNextMileage.isVisible = mode.usesMileage
+        binding.tvTargetHelp.setText(mode.help)
+        binding.tilNextDate.error = null
+        binding.tilNextMileage.error = null
     }
 
     private fun showDetails(open: Boolean) {
@@ -93,6 +132,8 @@ class AddMaintenanceActivity : AppCompatActivity() {
         binding.btnCancel.isEnabled = !value
         binding.btnBack.isEnabled = !value
         binding.checkCreateReminder.isEnabled = !value
+        binding.actTargetMode.isEnabled = !value
+        binding.btnToggleServiceMileage.isEnabled = !value
         listOf(binding.etType, binding.actStatus, binding.etDate, binding.etMileage, binding.etCost,
             binding.etWorkshop, binding.etNextDate, binding.etNextMileage, binding.etDescription).forEach { it.isEnabled = !value }
     }
@@ -137,6 +178,7 @@ class AddMaintenanceActivity : AppCompatActivity() {
                     val nextMileage = if (legacyDefault) 0 else item?.nextMileage ?: 0
                     binding.etNextDate.setText(nextDate)
                     binding.etNextMileage.setText(nextMileage.takeIf { it > 0 }?.toString().orEmpty())
+                    showTargetMode(ReviewTargetMode.fromTargets(nextDate, nextMileage))
                     binding.checkCreateReminder.isChecked = linked != null
                     showDetails(!item?.workshop.isNullOrBlank() || !item?.description.isNullOrBlank())
                     showPlan(nextDate.isNotEmpty() || nextMileage > 0 || linked != null)
@@ -182,6 +224,7 @@ class AddMaintenanceActivity : AppCompatActivity() {
 
     private fun invalid(layout: TextInputLayout, message: Int) {
         if (layout == binding.tilNextDate || layout == binding.tilNextMileage) showPlan(true)
+        if (layout == binding.tilMileage) showServiceMileage(true)
         layout.error = getString(message)
         layout.editText?.requestFocus()
     }
@@ -195,8 +238,8 @@ class AddMaintenanceActivity : AppCompatActivity() {
         val date = FormValidation.date(binding.etDate.text.toString())
         val mileage = FormValidation.mileage(binding.etMileage.text.toString())
         val cost = FormValidation.amount(binding.etCost.text.toString())
-        val nextDateText = binding.etNextDate.text?.toString()?.trim().orEmpty()
-        val nextMileageText = binding.etNextMileage.text?.toString()?.trim().orEmpty()
+        val nextDateText = if (targetMode.usesDate) binding.etNextDate.text?.toString()?.trim().orEmpty() else ""
+        val nextMileageText = if (targetMode.usesMileage) binding.etNextMileage.text?.toString()?.trim().orEmpty() else ""
         val nextDate = if (nextDateText.isBlank()) "" else FormValidation.date(nextDateText)
         val nextMileage = if (nextMileageText.isBlank()) 0 else FormValidation.mileage(nextMileageText)
         val linkReminder = binding.checkCreateReminder.isChecked
@@ -218,8 +261,11 @@ class AddMaintenanceActivity : AppCompatActivity() {
             nextMileageText.isNotBlank() && nextMileage <= mileage -> {
                 invalid(binding.tilNextMileage, R.string.service_next_mileage_invalid); return
             }
-            linkReminder && nextDate.isEmpty() && nextMileage == 0 -> {
-                invalid(binding.tilNextDate, R.string.service_target_required); return
+            (linkReminder || nextMileage > 0) && targetMode.usesDate && nextDate.isEmpty() -> {
+                invalid(binding.tilNextDate, R.string.form_required); return
+            }
+            (linkReminder || nextDate.isNotEmpty()) && targetMode.usesMileage && nextMileage == 0 -> {
+                invalid(binding.tilNextMileage, R.string.form_required); return
             }
         }
         val workshop = binding.etWorkshop.text?.toString()?.trim().orEmpty()

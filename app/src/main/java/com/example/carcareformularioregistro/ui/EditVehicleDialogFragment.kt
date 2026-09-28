@@ -15,7 +15,6 @@ import com.example.carcareformularioregistro.data.Vehicle
 import com.example.carcareformularioregistro.data.VehicleRepository
 import com.example.carcareformularioregistro.databinding.DialogEditVehicleBinding
 import com.example.carcareformularioregistro.utils.FormValidation
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -69,6 +68,13 @@ class EditVehicleDialogFragment : DialogFragment() {
                     binding.etPlates.setText(it.plates)
                     binding.checkPrimary.isChecked = it.isPrimary
                 }
+                binding.tilMileage.isVisible = currentVehicle == null
+                binding.tvMileageReadonly.isVisible = currentVehicle != null
+                currentVehicle?.let {
+                    binding.tvIntro.setText(R.string.vehicle_edit_intro)
+                    binding.tvMileageReadonly.text = getString(R.string.vehicle_mileage_readonly,
+                        NumberFormat.getIntegerInstance(Locale.forLanguageTag("es-MX")).format(it.mileage))
+                }
                 // A primary vehicle stays primary until another is chosen.
                 binding.checkPrimary.isEnabled = currentVehicle?.isPrimary != true
                 loaded = true
@@ -91,7 +97,7 @@ class EditVehicleDialogFragment : DialogFragment() {
         val brand = binding.etBrand.text?.toString()?.trim().orEmpty()
         val model = binding.etModel.text?.toString()?.trim().orEmpty()
         val year = FormValidation.mileage(binding.etYear.text.toString())
-        val mileage = FormValidation.mileage(binding.etMileage.text.toString())
+        val mileage = currentVehicle?.mileage ?: FormValidation.mileage(binding.etMileage.text.toString())
         val plates = binding.etPlates.text?.toString()?.trim().orEmpty().uppercase(Locale.ROOT)
         val maxYear = LocalDate.now().year + 1
         when {
@@ -104,17 +110,7 @@ class EditVehicleDialogFragment : DialogFragment() {
             model = model, year = year, mileage = mileage, plates = plates,
             photoUri = currentVehicle?.photoUri,
             isPrimary = currentVehicle?.isPrimary == true || binding.checkPrimary.isChecked)
-        val previousMileage = currentVehicle?.mileage
-        if (previousMileage != null && mileage < previousMileage) {
-            val number = NumberFormat.getIntegerInstance(Locale.forLanguageTag("es-MX"))
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.vehicle_mileage_correction_title)
-                .setMessage(getString(R.string.vehicle_mileage_correction_message,
-                    number.format(previousMileage), number.format(mileage)))
-                .setNegativeButton(R.string.cancelar, null)
-                .setPositiveButton(R.string.vehicle_correct) { _, _ -> persistVehicle(vehicle) }
-                .show()
-        } else persistVehicle(vehicle)
+        persistVehicle(vehicle)
     }
 
     private fun persistVehicle(vehicle: Vehicle) {
@@ -127,7 +123,7 @@ class EditVehicleDialogFragment : DialogFragment() {
                     dismiss()
                     return@launch
                 }
-                val id = vehicles.saveVehicle(vehicle, makePrimary = vehicle.isPrimary)
+                val id = vehicles.saveVehicle(vehicle, makePrimary = vehicle.isPrimary, updateMileage = vehicle.id == 0)
                 if (vehicle.id == 0) vehicles.selectVehicle(id)
                 Toast.makeText(requireContext(), R.string.vehicle_saved, Toast.LENGTH_SHORT).show()
                 dismiss()

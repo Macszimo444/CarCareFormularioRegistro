@@ -4,8 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import android.widget.EditText
+import android.view.View
+import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
+import androidx.test.espresso.matcher.ViewMatchers.Visibility
+import com.example.carcareformularioregistro.data.Maintenance
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -87,10 +92,11 @@ class MaintenanceReminderUiTest {
         openForm()
         fill(R.id.etType, "$prefix Cambio de aceite")
         fill(R.id.etDate, LocalDate.now().toString())
-        fill(R.id.etMileage, "120000")
+        onView(withId(R.id.tilMileage)).check(matches(withEffectiveVisibility(Visibility.GONE)))
         fill(R.id.etCost, "0")
         onView(withId(R.id.btnTogglePlan)).perform(scrollTo(), click())
         onView(withId(R.id.etNextDate)).check(matches(withText("")))
+        chooseTarget(R.string.target_mileage)
         fill(R.id.etNextMileage, "130000")
         onView(withId(R.id.checkCreateReminder)).perform(scrollTo(), click())
         onView(withId(R.id.btnSaveMaintenance)).perform(click())
@@ -102,6 +108,7 @@ class MaintenanceReminderUiTest {
             database.maintenanceDao().getAllMaintenances().single { it.vehicleId == vehicleId }
         }
         val linked = requireNotNull(runBlocking { database.reminderDao().getForMaintenance(maintenance.id) })
+        assertEquals(120000, maintenance.mileage)
         assertEquals("", maintenance.nextDate)
         assertEquals(130000, maintenance.nextMileage)
         assertEquals("", linked.dueDate)
@@ -138,7 +145,103 @@ class MaintenanceReminderUiTest {
         assertEquals(1, runBlocking { database.reminderDao().getForVehicle(vehicleId).size })
     }
 
-    private fun openForm(maintenanceId: Int = 0) {
+    @Test
+    fun historicalMileageSurvivesRecreationAndDoesNotChangeVehicleReading() {
+        openForm()
+        fill(R.id.etType, "$prefix Histórico")
+        onView(withId(R.id.btnToggleServiceMileage)).perform(scrollTo(), click())
+        fill(R.id.etMileage, "90000")
+        scenario!!.recreate()
+        onView(withId(R.id.etMileage)).check(matches(withText("90000")))
+        onView(withId(R.id.btnSaveMaintenance)).perform(click())
+        awaitDatabase("historical service") {
+            database.maintenanceDao().getAllMaintenances().any { it.vehicleId == vehicleId && it.mileage == 90000 }
+        }
+        val item = runBlocking { database.maintenanceDao().getAllMaintenances().single { it.vehicleId == vehicleId } }
+        assertEquals(120000, runBlocking { database.vehicleDao().getById(vehicleId)?.mileage })
+        openForm(item.id, "90000")
+        onView(withId(R.id.tilMileage)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        onView(withId(R.id.etMileage)).check(matches(withText("90000")))
+    }
+
+    @Test
+    fun reminderModeSurvivesRecreationAndDateOnlyClearsHiddenMileageOnBothLinkedRows() {
+        val serviceId = runBlocking { database.maintenanceDao().insert(Maintenance(
+            vehicleId = vehicleId, type = "$prefix Servicio", date = "2020-01-01", mileage = 90000,
+            cost = 0.0, workshop = "", nextDate = "2090-01-01", nextMileage = 150000,
+            status = Maintenance.STATUS_REALIZADO
+        )).toInt() }
+        val reminderId = runBlocking { database.reminderDao().insert(Reminder(
+            vehicleId = vehicleId, title = "$prefix Revisión", dueDate = "2090-01-01", dueMileage = 150000,
+            maintenanceId = serviceId, enabled = false
+        )).toInt() }
+        openForm()
+        scenario!!.onActivity { AddReminderDialogFragment.edit(reminderId).show(it.supportFragmentManager, "target_test") }
+        awaitReminderLoaded()
+        onView(withId(R.id.actTargetMode)).check(matches(withText(R.string.target_both)))
+        chooseTarget(R.string.target_mileage)
+        onView(withId(R.id.tilDueDate)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        scenario!!.recreate()
+        awaitReminderLoaded()
+        onView(withId(R.id.actTargetMode)).check(matches(withText(R.string.target_mileage)))
+        onView(withId(R.id.etDueMileage)).check(matches(withText("150000")))
+        chooseTarget(R.string.target_date)
+        onView(withId(R.id.tilDueMileage)).check(matches(withEffectiveVisibility(Visibility.GONE)))
+        onView(withId(R.id.btnSave)).perform(scrollTo(), click())
+        awaitDatabase("date-only targets") {
+            database.reminderDao().getById(reminderId)?.dueMileage == 0 &&
+                database.maintenanceDao().getById(serviceId)?.nextMileage == 0
+        }
+        assertEquals("2090-01-01", runBlocking { database.reminderDao().getById(reminderId)?.dueDate })
+        assertEquals("2090-01-01", runBlocking { database.maintenanceDao().getById(serviceId)?.nextDate })
+        assertNotNull(runBlocking { database.reminderDao().getById(independentReminderId) })
+    }
+
+    @Test
+    fun editingVehicleDetailsPreservesNewerOdometerReading() {
+        openForm()
+        scenario!!.onActivity { EditVehicleDialogFragment.newInstance(vehicleId).show(it.supportFragmentManager, "vehicle_test") }
+        val deadline = SystemClock.elapsedRealtime() + 5_000
+        var ready = false
+        do {
+            scenario!!.onActivity {
+                val view = it.supportFragmentManager.findFragmentByTag("vehicle_test")?.view
+                ready = view?.findViewById<View>(R.id.btnSave)?.isEnabled == true
+            }
+            if (!ready) SystemClock.sleep(50)
+        } while (!ready && SystemClock.elapsedRealtime() < deadline)
+        check(ready)
+        // The reading changes after the edit form has loaded its snapshot.
+        runBlocking {
+            val car = requireNotNull(database.vehicleDao().getById(vehicleId))
+            database.vehicleDao().updateVehicle(car.copy(mileage = 125000))
+        }
+        fill(R.id.etModel, "Modelo actualizado")
+        onView(withId(R.id.btnSave)).perform(scrollTo(), click())
+        awaitDatabase("vehicle details saved") { database.vehicleDao().getById(vehicleId)?.model == "Modelo actualizado" }
+        assertEquals(125000, runBlocking { database.vehicleDao().getById(vehicleId)?.mileage })
+    }
+
+    private fun chooseTarget(label: Int) {
+        onView(withId(R.id.actTargetMode)).perform(scrollTo(), click())
+        onView(withText(label)).inRoot(isPlatformPopup()).perform(click())
+    }
+
+    private fun awaitReminderLoaded() {
+        val deadline = SystemClock.elapsedRealtime() + 5_000
+        do {
+            var ready = false
+            scenario!!.onActivity {
+                val view = it.supportFragmentManager.findFragmentByTag("target_test")?.view
+                ready = view?.findViewById<EditText>(R.id.etDueMileage)?.isEnabled == true
+            }
+            if (ready) return
+            SystemClock.sleep(50)
+        } while (SystemClock.elapsedRealtime() < deadline)
+        throw AssertionError("Reminder did not load")
+    }
+
+    private fun openForm(maintenanceId: Int = 0, expectedMileage: String = "120000") {
         scenario?.close()
         scenario = ActivityScenario.launch(Intent(context, AddMaintenanceActivity::class.java)
             .putExtra("maintenance_id", maintenanceId))
@@ -147,7 +250,7 @@ class MaintenanceReminderUiTest {
             var loaded = false
             scenario!!.onActivity { activity ->
                 val field = activity.findViewById<EditText>(R.id.etMileage)
-                loaded = field.isEnabled && field.text.toString() == "120000"
+                loaded = field.isEnabled && field.text.toString() == expectedMileage
             }
             if (loaded) return
             SystemClock.sleep(50)
